@@ -2,28 +2,43 @@
     <head>
         <title>Chain It! - Test Page</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script type="text/javascript" src="js/libs/jquery-1.9.0/jquery.min.js"></script>
+        <script type="text/javascript" src="js/jquery.min.js"></script>
+        <script type="text/javascript" src="jquery.chainem.js"></script>
     </head>
     <body>
         <form>
-            <select name="A" class="chained">
+            <select name="A" id="A" class="chained">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
-            <select name="B" class="chained">
+            <select name="B" id="B" class="chained">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
-            <select name="C" class="chained">
+            <select name="C" id="C" class="chained">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
         </form>
         <script type="text/javascript">
-            
+            $().ready(function(){
+                $.chainem([{id: 'A', 
+                            getSiblings: function(){
+                                return ['uno'];
+                           }}, 
+                           {id: 'B', 
+                            getSiblings: function(){
+                                return ['uno'];
+                           }},
+                           {id: 'C', 
+                            getSiblings: function(){
+                                return ['uno'];
+                           }}
+                 ]);
+            });
         </script>
     </body>
 </html>
