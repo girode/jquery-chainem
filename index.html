@@ -7,25 +7,26 @@
     </head>
     <body>
         <form>
-            <select name="A" id="A" class="chained">
+            <select name="A" id="A" class="chain">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
-            <select name="B" id="B" class="chained">
+            <select name="B" id="B" class="chain">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
-            <select name="C" id="C" class="chained">
+            <select name="C" id="C" class="chain">
                 <option>uno</option>
                 <option>dos</option>
             </select>
             
         </form>
+        
         <script type="text/javascript">
-            $().ready(function(){
-                $.chainem([{id: 'A', 
+            $(document).ready(function(){
+                $('.chained').chainem([{id: 'A', 
                             getSiblings: function(){
                                 return ['uno'];
                            }}, 
