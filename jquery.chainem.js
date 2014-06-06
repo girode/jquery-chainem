@@ -22,7 +22,27 @@
     Plugin.prototype = {
         init: function() {
             
-            console.log(this.element);
+            var $elements = this.element;
+            
+            // Traversing the chain of elements
+            this.element.each(function(i){
+                
+                // Set change event
+                $(this).change(function(e, p){
+                    var sel = $(this).val();
+                    var proximoCombo;
+                
+                    if(sel == 0){
+                        $(this).val(p);
+                        proximoCombo = $elements.get(i+1);
+                    
+                        if(typeof proximoCombo != 'undefined')
+                           $(proximoCombo).trigger('change', [ sel ]);
+                    }
+                       
+                });
+                
+            });
             
             // Place initialization logic here
             // You already have access to the DOM element and
@@ -30,26 +50,24 @@
             // and this.settings
             // you can add more functions like the one below and
             // call them like so: this.yourOtherFunction(this.element, this.settings).
-            console.log("xD");
         },
         yourOtherFunction: function() {
             // some logic
         }
     };
 
-        // A really lightweight plugin wrapper around the constructor,
-        // preventing against multiple instantiations
+    // A really lightweight plugin wrapper around the constructor,
+    // preventing against multiple instantiations
     $.fn[ pluginName ] = function(options) {
-        this.each(function() {
-            console.log(this);
-            
-//            if (!$.data(this, "plugin_" + pluginName)) {
-//                $.data(this, "plugin_" + pluginName, new Plugin(this, options));
-//            }
-        });
-
         
-        return this;
+        var $primero = this.first();
+        
+        if (!$.data($primero, "plugin_" + pluginName)) {
+            // Inicializo plugin con el objeto completo
+            $.data($primero, "plugin_" + pluginName, new Plugin(this, options));
+        }
+        
+        return this; // Returns jquery object representing combos
     };
 
 })(jQuery, window, document);

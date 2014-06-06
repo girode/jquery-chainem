@@ -4,42 +4,42 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="jquery.chainem.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                $('.chain').chainem([function(){
+                                        return 1;
+                                     },
+                                     function(){
+                                        return 2;    
+                                     }, 
+                                     function(){
+                                        return 3; 
+                                     }]);
+            });
+        </script>
     </head>
     <body>
         <form>
             <select name="A" id="A" class="chain">
-                <option>uno</option>
-                <option>dos</option>
+                <option value="0">NS</option>
+                <option value="1">uno</option>
+                <option value="2">dos</option>
             </select>
             
             <select name="B" id="B" class="chain">
-                <option>uno</option>
-                <option>dos</option>
+                <option value="0">NS</option>
+                <option value="1">uno</option>
+                <option value="2">dos</option>
             </select>
             
             <select name="C" id="C" class="chain">
-                <option>uno</option>
-                <option>dos</option>
+                <option value="0">NS</option>
+                <option value="1">uno</option>
+                <option value="2">dos</option>
             </select>
             
         </form>
-        
-        <script type="text/javascript">
-            $(document).ready(function(){
-                $('.chained').chainem([{id: 'A', 
-                            getSiblings: function(){
-                                return ['uno'];
-                           }}, 
-                           {id: 'B', 
-                            getSiblings: function(){
-                                return ['uno'];
-                           }},
-                           {id: 'C', 
-                            getSiblings: function(){
-                                return ['uno'];
-                           }}
-                 ]);
-            });
-        </script>
     </body>
+    
+    
 </html>
