@@ -27,20 +27,29 @@
             // Traversing the chain of elements
             this.element.each(function(i){
                 
-                // Set change event
-                $(this).change(function(e, p){
-                    var sel = $(this).val();
-                    var proximoCombo;
+                var proximoCombo;
                 
+                // Set change event
+                $(this).change(function(e){
+                    var sel = $(this).val();
+                    
                     if(sel == 0){
-                        $(this).val(p);
                         proximoCombo = $elements.get(i+1);
                     
-                        if(typeof proximoCombo != 'undefined')
-                           $(proximoCombo).trigger('change', [ sel ]);
+                        if(typeof proximoCombo !== 'undefined')
+                           $(proximoCombo).trigger('chaining', [ 0 ]);
                     }
                        
                 });
+                
+                $(this).on('chaining', function(e, val){
+                    $(this).val(val);
+                    
+                    proximoCombo = $elements.get(i+1);
+                    if(typeof proximoCombo !== 'undefined')
+                        $(proximoCombo).trigger('chaining', [ 0 ]);
+                });
+                
                 
             });
             
