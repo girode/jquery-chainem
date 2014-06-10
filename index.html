@@ -6,15 +6,17 @@
         <script type="text/javascript" src="jquery.chainem.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
-                $('.chain').chainem([function(){
-                                        return 1;
-                                     },
-                                     function(){
-                                        return 2;    
-                                     }, 
-                                     function(){
-                                        return 3; 
-                                     }]);
+                $('.chain').chainem( { 
+                                       methods: {
+                                           A: function(){
+                                             // alert('A');
+                                           },
+                                           B: function(){
+                                             // alert('B');
+                                           }
+                                       }
+                                     }
+                );
             });
         </script>
     </head>

@@ -23,6 +23,7 @@
         init: function() {
             
             var $elements = this.element;
+            var plug = this;
             
             // Traversing the chain of elements
             this.element.each(function(i){
@@ -31,19 +32,30 @@
                 
                 // Set change event
                 $(this).change(function(e){
-                    var sel = $(this).val();
+                    var sel  = $(this).val();
+                    var myId = $(this).prop('id');
+                    var nextVal, previousValues;
                     
-                    if(sel == 0){
-                        proximoCombo = $elements.get(i+1);
+                    proximoCombo = $elements.get(i+1);
                     
-                        if(typeof proximoCombo !== 'undefined')
-                           $(proximoCombo).trigger('chaining', [ 0 ]);
-                    }
-                       
+                    // Is there a following combo?
+                    if(typeof proximoCombo !== 'undefined'){
+                        // What value should I put in it?
+                        if(sel == 0){
+                            nextVal = [{id: 0, val: 'NS'}];
+                        } else {
+                            previousValues = plug.getSelectedValues(myId);
+                            nextVal = plug.getNextValue(previousValues);
+                        }
+                    
+                        // Go to next combo!!
+                        $(proximoCombo).trigger('chaining', [ nextVal ]);
+                    } 
+                    
                 });
                 
                 $(this).on('chaining', function(e, val){
-                    $(this).val(val);
+                    plug.fillCombo($(this), val);
                     
                     proximoCombo = $elements.get(i+1);
                     if(typeof proximoCombo !== 'undefined')
@@ -53,16 +65,53 @@
                 
             });
             
-            // Place initialization logic here
-            // You already have access to the DOM element and
-            // the options via the instance, e.g. this.element
-            // and this.settings
-            // you can add more functions like the one below and
-            // call them like so: this.yourOtherFunction(this.element, this.settings).
         },
-        yourOtherFunction: function() {
-            // some logic
-        }
+        
+        getSelectedValues: function(lastId) {
+            var myarr = {};
+            
+            this.element.each(function(){
+               var id   = $(this).prop('id');
+               var sel  = $(this).val();
+               
+               myarr[id] = {'sel': sel};
+                         
+               if(id == lastId) return false;
+            });
+            
+            return myarr;
+        },
+        
+        getNextValue: function(previousValues){
+            // console.log(previousValues);
+            
+            // Make ajax call using previousValues
+            
+            return [{id: 1, val: 'val1'}, {id: 2, val: 'val2'}, {id: 3, val: 'val3'}];
+        },
+        
+        /*
+         * fillCombo: Deletes all select options y and adds new options to select
+         * arguments: 
+         * - $combo: jQuery object representing select to be repopulated
+         * - comboOptions: An array of objects with form:
+         *   [{id: 1, val: 'val1'}, {id: 2, val: 'val2'}, {id: 3, val: 'val3'}]
+         * 
+         **/
+        
+        fillCombo: function($combo, comboOptions){
+            $combo.empty();
+            
+            $.each(comboOptions, function(index, elem) {
+                
+                $combo.append(
+                    $('<option></option>')
+                        .val(elem.id)
+                        .html(elem.val) 
+                    ); 
+             });
+       }
+        
     };
 
     // A really lightweight plugin wrapper around the constructor,
