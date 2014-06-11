@@ -8,7 +8,13 @@
 
     var pluginName = "chainem",
                     defaults = {
-                        propertyName: "value"
+                        propertyName: "value",
+                        /*
+                         * combination: Selects a combination of all combos
+                         * last: Help to filter and select the last combo
+                         * 
+                         **/
+                        selectMode: "last" 
                     };
 
     function Plugin(element, options) {
@@ -29,7 +35,7 @@
             this.element.each(function(i){
                 
                 var proximoCombo;
-                
+                 
                 // Set change event
                 $(this).change(function(e){
                     var sel  = $(this).val();
