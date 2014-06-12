@@ -51,7 +51,7 @@
                             nextVal = [{id: 0, val: 'NS'}];
                         } else {
                             previousValues = plug.getSelectedValues(myId);
-                            nextVal = plug.getNextValue(previousValues);
+                            nextVal = plug.getNextValue(previousValues, myId);
                         }
                     
                         // Go to next combo!!
@@ -88,12 +88,10 @@
             return myarr;
         },
         
-        getNextValue: function(previousValues){
-            // console.log(previousValues);
-            
+        getNextValue: function(previousValues, myId){
             // Make ajax call using previousValues
             
-            return [{id: 1, val: 'val1'}, {id: 2, val: 'val2'}, {id: 3, val: 'val3'}];
+            return this.settings.methods[myId](previousValues);
         },
         
         /*

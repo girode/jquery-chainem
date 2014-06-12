@@ -8,10 +8,29 @@
             $(document).ready(function(){
                 $('.chain').chainem( { 
                                        methods: {
-                                           A: function(){
-                                             // alert('A');
+                                           'genero': function(prevValues){
+//                                                return [{id: 1, val: 'val1'},
+//                                                        {id: 2, val: 'val2'},
+//                                                        {id: 3, val: 'val3'}];
+                                                    
+                                                ret = null;
+                                                // console.log(this);
+                                                
+//                                                for(var propertyName in this) {
+//                                                     if (this.hasOwnProperty(propertyName)) {
+//                                                        console.log(propertyName);
+//                                                     }
+//                                                }    
+                                                
+                                                // Quiero prevValues['genero'] sin tener que escribir genero
+                                                console.log(this.__proto__);
+                                                
+        
+                                                return [{id: 1, val: 'Iron Man 3'}];
+                                                    
+                                                    
                                            },
-                                           B: function(){
+                                           'funcion': function(){
                                              // alert('B');
                                            }
                                        }
@@ -22,12 +41,14 @@
     </head>
     <body>
         <form>
+            <label for="espectaculo"><strong>Espectaculo</strong></label>
             <select name="A" id="espectaculo" class="chain">
                 <option value="0">NS</option>
                 <option value="1">Obra de Teatro</option>
                 <option value="2">Pelicula</option>
             </select>
             
+            <label for="genero"><strong>Genero</strong></label>
             <select name="B" id="genero" class="chain">
                 <option value="0">NS</option>
                 <option value="1">Comedia</option>
@@ -35,6 +56,7 @@
                 <option value="3">Extravagante</option>
             </select>
             
+            <label for="funcion"><strong>Función</strong></label>
             <select name="C" id="funcion" class="chain">
                 <option value="0">NS</option>
                 <option value="1">Iron Man 3</option>
