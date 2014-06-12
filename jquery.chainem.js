@@ -17,7 +17,33 @@
                         selectMode: "last" 
                     };
 
+    /*
+     * Custom objects
+     *
+     **/     
+          
+    function Link($select){
+        this.id = $select.prop('id');
+        this.options = [];
+        link = this;
+        
+        $select.find('option').each(function(i, e){
+             link.options.push({id: $(e).val(), val: $(e).html()});
+        });      
+        
+        this.getOptions = function(filter){
+            filter = filter || function(){ return true; };
+            return $.grep(this.options, filter);
+        }
+        
+    }      
+          
+    /* Main Plugin object
+     *
+     **/
+
     function Plugin(element, options) {
+        this.chain = [];
         this.element = element;
         this.settings = $.extend({}, defaults, options);
         this._defaults = defaults;
@@ -25,24 +51,27 @@
         this.init();
     }
 
+
     Plugin.prototype = {
         init: function() {
             
-            var $elements = this.element;
             var plug = this;
+            var $elements = this.element;
             
             // Traversing the chain of elements
-            this.element.each(function(i){
+            $elements.each(function(i, elem){
                 
-                var proximoCombo;
+                plug.chain.push(new Link($(elem)));
+                
+                var nextSelect;
                  
                 // Set change event
                 $(this).change(function(e){
-                    var sel  = $(this).val();
-                    var myId = $(this).prop('id');
-                    var nextVal, previousValues;
+                    var sel  = $(this).val(),
+                        myId = $(this).prop('id'),
+                        nextVal, previousValues;
                     
-                    proximoCombo = $elements.get(i+1);
+                    nextSelect = $elements.get(i+1);
                     
                     // Is there a following combo?
                     if(typeof proximoCombo !== 'undefined'){
@@ -54,22 +83,29 @@
                             nextVal = plug.getNextValue(previousValues, myId);
                         }
                     
-                        // Go to next combo!!
-                        $(proximoCombo).trigger('chaining', [ nextVal ]);
+                        // Trigger chaining event in next combo!!
+                        $(nextSelect).trigger('chaining', [ nextVal ]);
                     } 
                     
                 });
                 
+                // Set chaining event
                 $(this).on('chaining', function(e, val){
                     plug.fillCombo($(this), val);
                     
-                    proximoCombo = $elements.get(i+1);
+                    nextSelect = $elements.get(i+1);
                     if(typeof proximoCombo !== 'undefined')
-                        $(proximoCombo).trigger('chaining', [ 0 ]);
+                        $(nextSelect).trigger('chaining', [ 0 ]);
                 });
                 
                 
             });
+            
+            // Display all chain links
+            
+            console.log(this.chain[0].getOptions(function(elem, i){
+                return elem.id == 0 || elem.id == 1;
+            }));
             
         },
         
@@ -80,7 +116,7 @@
                var id   = $(this).prop('id');
                var sel  = $(this).val();
                
-               myarr[id] = {'sel': sel};
+               myarr[id] = sel;
                          
                if(id == lastId) return false;
             });
@@ -91,7 +127,7 @@
         getNextValue: function(previousValues, myId){
             // Make ajax call using previousValues
             
-            return this.settings.methods[myId](previousValues);
+            return this.settings.methods[myId](previousValues, myId);
         },
         
         /*
