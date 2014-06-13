@@ -34,7 +34,7 @@
         this.getOptions = function(filter){
             filter = filter || function(){ return true; };
             return $.grep(this.options, filter);
-        }
+        };
         
     }      
           
