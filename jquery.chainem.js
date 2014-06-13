@@ -43,7 +43,7 @@
      **/
 
     function Plugin(element, options) {
-        this.chain = [];
+        this.chain = {};
         this.element = element;
         this.settings = $.extend({}, defaults, options);
         this._defaults = defaults;
@@ -61,9 +61,9 @@
             // Traversing the chain of elements
             $elements.each(function(i, elem){
                 
-                plug.chain.push(new Link($(elem)));
+                plug.chain[$(elem).prop('id')] = (new Link($(elem)));
                 
-                var nextSelect;
+                var nextSelect = $elements.get(i+1);
                  
                 // Set change event
                 $(this).change(function(e){
@@ -71,16 +71,14 @@
                         myId = $(this).prop('id'),
                         nextVal, previousValues;
                     
-                    nextSelect = $elements.get(i+1);
-                    
                     // Is there a following combo?
-                    if(typeof proximoCombo !== 'undefined'){
+                    if(typeof nextSelect !== 'undefined'){
                         // What value should I put in it?
                         if(sel == 0){
                             nextVal = [{id: 0, val: 'NS'}];
                         } else {
                             previousValues = plug.getSelectedValues(myId);
-                            nextVal = plug.getNextValue(previousValues, myId);
+                            nextVal = plug.getNextValue(previousValues, myId, $(nextSelect));
                         }
                     
                         // Trigger chaining event in next combo!!
@@ -93,19 +91,13 @@
                 $(this).on('chaining', function(e, val){
                     plug.fillCombo($(this), val);
                     
-                    nextSelect = $elements.get(i+1);
-                    if(typeof proximoCombo !== 'undefined')
+                    if(typeof nextSelect !== 'undefined')
                         $(nextSelect).trigger('chaining', [ 0 ]);
                 });
                 
                 
             });
             
-            // Display all chain links
-            
-            console.log(this.chain[0].getOptions(function(elem, i){
-                return elem.id == 0 || elem.id == 1;
-            }));
             
         },
         
@@ -124,10 +116,38 @@
             return myarr;
         },
         
-        getNextValue: function(previousValues, myId){
+        getNextValue: function(previousValues, myId, $nextSelect){
             // Make ajax call using previousValues
             
-            return this.settings.methods[myId](previousValues, myId);
+            // Uso this.settings.methods[myId](previousValues, myId)
+            // para obtener el filtro de opciones
+            // console.log(this.chain[myId].getOptions());
+            var nextId = $nextSelect.prop('id');            
+            
+//            function(e, i){
+//                var ret; 
+//                
+//                switch (genero){
+//                    // Comedia
+//                    case '1':
+//                        ret.push({id: 2, val: 'La familia de mi novia'},
+//                                 {id: 4, val: 'Les Luthiers'});
+//                    break;
+//                    // Accion
+//                    case '2':
+//                        ret.push({id: 1, val: 'Iron Man 3'});
+//                    break;
+//                    case '3':
+//                        ret.push({id: 3, val: 'Stravaganza'});
+//                    break;
+//                }
+//                
+//                return ret;    
+//            }
+            
+            
+            return this.chain[nextId].getOptions(); 
+            
         },
         
         /*
@@ -151,6 +171,7 @@
                     ); 
              });
        }
+       
         
     };
 
