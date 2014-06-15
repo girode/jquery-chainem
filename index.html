@@ -7,36 +7,19 @@
         <script type="text/javascript">
             $(document).ready(function(){
                 
-                function getFuncion(genero){
-                    var ret = []; 
-
-                    // Reviso que genero se selecciono
-                    switch (genero){
-                        // Comedia
-                        case '1':
-                            ret.push({id: 2, val: 'La familia de mi novia'},
-                            {id: 4, val: 'Les Luthiers'});
-                            break;
-                        // Accion
-                        case '2':
-                            ret.push({id: 1, val: 'Iron Man 3'});
-                            break;
-                        case '3':
-                            ret.push({id: 3, val: 'Stravaganza'});
-                            break;
-                    }
-
-                    return ret;
-                }
-                
-                
                 $('.chain').chainem( { 
                                        methods: {
-                                           'genero': function(prevValues, myId){
-                                                return getFuncion(prevValues[myId]);
+                                           'genero': function(){
+                                                return 0;
                                            },
-                                           'funcion': function(){
-                                             // alert('B');
+                                           'funcion': function(e, i, previousValues){
+                                                // console.log(arguments);
+                                                console.log(e);
+                                                console.log(i);
+                                                console.log(previousValues);
+                                                // Quiero tenere acceso a previousValues
+                                                
+                                                return true;
                                            }
                                        }
                                      }

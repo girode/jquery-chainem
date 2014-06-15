@@ -31,9 +31,12 @@
              link.options.push({id: $(e).val(), val: $(e).html()});
         });      
         
-        this.getOptions = function(filter){
-            filter = filter || function(){ return true; };
-            return $.grep(this.options, filter);
+        this.getOptions = function(fil, previousValues){
+            var fil = fil || function(){ return true; };
+            
+            return $.grep(this.options, function(e, i){
+                return fil(e, i, previousValues);
+            });
         };
         
     }      
@@ -146,7 +149,7 @@
 //            }
             
             
-            return this.chain[nextId].getOptions(); 
+            return this.chain[nextId].getOptions(this.settings.methods[nextId], previousValues); 
             
         },
         
