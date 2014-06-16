@@ -81,8 +81,7 @@
                     if(typeof nextSelect !== 'undefined'){
                         // What value should I put in it?
                         previousValues = plug.getSelectedValues(myId);
-                        nextVal = plug.getNextValue(previousValues, myId, $(nextSelect));
-                        
+                        nextVal = plug.getNextValue(previousValues, $(nextSelect));
                         
                         // Trigger chaining event in next combo!!
                         $(nextSelect).trigger('chaining', [ nextVal, previousValues ]);
@@ -94,10 +93,13 @@
                 $(this).on('chaining', function(e, val, pv){
                     plug.fillCombo($(this), val);
                     
-                    pv[$(this).prop('id')] = $(this).val(); 
+                    var id = $(this).prop('id'); 
+                    
+                    nextVal = plug.getNextValue(pv, $(nextSelect));
+                    pv[id] = $(this).val(); 
                     
                     if(typeof nextSelect !== 'undefined')
-                        $(nextSelect).trigger('chaining', [ 0 ]);
+                        $(nextSelect).trigger('chaining', [ 0 , pv ]);
                 });
                 
                 
@@ -121,7 +123,7 @@
             return myarr;
         },
         
-        getNextValue: function(previousValues, myId, $nextSelect){
+        getNextValue: function(previousValues, $nextSelect){
             var nextId = $nextSelect.prop('id');            
             
             return this.chain[nextId].getOptions(this.settings.methods[nextId], previousValues); 
