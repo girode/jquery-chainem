@@ -28,16 +28,19 @@
         link = this;
         
         $select.find('option').each(function(i, e){
-             link.options.push({id: $(e).val(), val: $(e).html()});
+           link.options.push({id: $(e).val(), val: $(e).html()});
         });      
         
         this.getOptions = function(fil, previousValues){
-            var fil = fil || function(){ return true; };
+            fil = fil || function(previousValues){ return []; };
+
+            var ids = fil(previousValues);
             
-            return $.grep(this.options, function(e, i){
-                return fil(e, i, previousValues);
+            return $.grep(this.options, function(e){
+                return $.inArray(e.id, ids) != -1;
             });
         };
+    
         
     }      
           
@@ -70,20 +73,17 @@
                  
                 // Set change event
                 $(this).change(function(e){
-                    var sel  = $(this).val(),
-                        myId = $(this).prop('id'),
+                    // var sel  = $(this).val(),
+                    var myId = $(this).prop('id'),
                         nextVal, previousValues;
                     
                     // Is there a following combo?
                     if(typeof nextSelect !== 'undefined'){
                         // What value should I put in it?
-                        if(sel == 0){
-                            nextVal = [{id: 0, val: 'NS'}];
-                        } else {
-                            previousValues = plug.getSelectedValues(myId);
-                            nextVal = plug.getNextValue(previousValues, myId, $(nextSelect));
-                        }
-                    
+                        previousValues = plug.getSelectedValues(myId);
+                        nextVal = plug.getNextValue(previousValues, myId, $(nextSelect));
+                        
+                        
                         // Trigger chaining event in next combo!!
                         $(nextSelect).trigger('chaining', [ nextVal ]);
                     } 
@@ -120,34 +120,7 @@
         },
         
         getNextValue: function(previousValues, myId, $nextSelect){
-            // Make ajax call using previousValues
-            
-            // Uso this.settings.methods[myId](previousValues, myId)
-            // para obtener el filtro de opciones
-            // console.log(this.chain[myId].getOptions());
             var nextId = $nextSelect.prop('id');            
-            
-//            function(e, i){
-//                var ret; 
-//                
-//                switch (genero){
-//                    // Comedia
-//                    case '1':
-//                        ret.push({id: 2, val: 'La familia de mi novia'},
-//                                 {id: 4, val: 'Les Luthiers'});
-//                    break;
-//                    // Accion
-//                    case '2':
-//                        ret.push({id: 1, val: 'Iron Man 3'});
-//                    break;
-//                    case '3':
-//                        ret.push({id: 3, val: 'Stravaganza'});
-//                    break;
-//                }
-//                
-//                return ret;    
-//            }
-            
             
             return this.chain[nextId].getOptions(this.settings.methods[nextId], previousValues); 
             
@@ -164,7 +137,7 @@
         
         fillCombo: function($combo, comboOptions){
             $combo.empty();
-            
+
             $.each(comboOptions, function(index, elem) {
                 
                 $combo.append(

@@ -7,20 +7,39 @@
         <script type="text/javascript">
             $(document).ready(function(){
                 
+                // devuelve funcion en funcion del genero
+                function daFuncion(genero){
+                    var ret = []; 
+                    
+                    switch (genero){
+                        case '0': ret.push('0', '1', '2', '3', '4');
+                        break;
+                        case '1': ret.push('2', '4');
+                        break;
+                        case '2': ret.push('1');
+                        break;
+                        case '3': ret.push('3');
+                        break;
+                    }
+                    
+                    return ret;
+                }
+                
+                
                 $('.chain').chainem( { 
                                        methods: {
                                            'genero': function(){
                                                 return 0;
                                            },
-                                           'funcion': function(e, i, previousValues){
-                                                // console.log(arguments);
-                                                console.log(e);
-                                                console.log(i);
-                                                console.log(previousValues);
-                                                // Quiero tenere acceso a previousValues
-                                                
-                                                return true;
-                                           }
+                                           // Determine how to get "function" value using
+                                           // previousValues. This version is hardcoded, nevertheless
+                                           // one may use an ajax call using previousValues to determine it
+//                                           'funcion': function(e, i, previousValues){
+//                                                return buscarFuncion(previousValues.genero);
+//                                           }
+                                           'funcion': function(pv){
+                                               return daFuncion(pv.genero);
+                                            } 
                                        }
                                      }
                 );
