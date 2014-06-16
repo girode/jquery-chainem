@@ -67,15 +67,14 @@
             // Traversing the chain of elements
             $elements.each(function(i, elem){
                 
-                plug.chain[$(elem).prop('id')] = (new Link($(elem)));
+                var nextSelect = $elements.get(i+1),
+                    myId = $(this).prop('id');
                 
-                var nextSelect = $elements.get(i+1);
+                plug.chain[myId] = (new Link($(elem)));
                  
                 // Set change event
                 $(this).change(function(e){
-                    // var sel  = $(this).val(),
-                    var myId = $(this).prop('id'),
-                        nextVal, previousValues;
+                    var nextVal, previousValues;
                     
                     // Is there a following combo?
                     if(typeof nextSelect !== 'undefined'){
@@ -92,14 +91,13 @@
                 // Set chaining event
                 $(this).on('chaining', function(e, val, pv){
                     plug.fillCombo($(this), val);
+                    pv[myId] = $(this).val(); 
                     
-                    var id = $(this).prop('id'); 
+                    if(typeof nextSelect !== 'undefined'){
+                        nextVal = plug.getNextValue(pv, $(nextSelect));
                     
-                    nextVal = plug.getNextValue(pv, $(nextSelect));
-                    pv[id] = $(this).val(); 
-                    
-                    if(typeof nextSelect !== 'undefined')
-                        $(nextSelect).trigger('chaining', [ 0 , pv ]);
+                        $(nextSelect).trigger('chaining', [ nextVal , pv ]);
+                    }
                 });
                 
                 

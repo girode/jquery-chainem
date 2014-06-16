@@ -22,20 +22,46 @@
                     return ret;
                 }
                 
-                // devuelve funcion en funcion del genero
-                function daFuncion(genero){
-                    var ret = []; 
-                    
-                    switch (genero){
-                        case '0': ret.push('0', '1', '2', '3', '4');
-                        break;
-                        case '1': ret.push('2', '4');
-                        break;
-                        case '2': ret.push('1');
-                        break;
-                        case '3': ret.push('3');
+                // devuelve funcion en funcion del genero y el espectacilo
+                function daFuncion(genero, espectaculo){
+                    var ret = [];
+                        
+                    if(espectaculo == '0'){
+                        switch (genero){
+                            case '0': ret.push('0', '1', '2', '3', '4');
+                            break;
+                            case '1': ret.push('2', '4');
+                            break;
+                            case '2': ret.push('1');
+                            break;
+                            case '3': ret.push('3');
+                            break;
+                        }
+                    } else if(espectaculo == '1'){
+                        // obra de teatro
+                        switch (genero){
+//                            case '0': ret.push('0', '1', '2', '3', '4');
+//                            break;
+                            case '1': ret.push('4');
+                            break;
+//                            case '2': ret.push('1');
+//                            break;
+                            case '3': ret.push('3');
                         break;
                     }
+                    } else if(espectaculo == '2'){
+                        // pelicula
+                        switch (genero){
+//                            case '0': ret.push('0', '1', '2', '3', '4');
+//                            break;
+                            case '1': ret.push('2');
+                            break;
+                            case '2': ret.push('1');
+                            break;
+//                            case '3': ret.push('3');
+//                            break;
+                        }
+                    } 
                     
                     return ret;
                 }
@@ -46,14 +72,8 @@
                                            'genero': function(pv){
                                                 return daGenero(pv.espectaculo);
                                            },
-                                           // Determine how to get "function" value using
-                                           // previousValues. This version is hardcoded, nevertheless
-                                           // one may use an ajax call using previousValues to determine it
-//                                           'funcion': function(e, i, previousValues){
-//                                                return buscarFuncion(previousValues.genero);
-//                                           }
                                            'funcion': function(pv){
-                                               return daFuncion(pv.genero);
+                                               return daFuncion(pv.genero, pv.espectaculo);
                                             } 
                                        }
                                      }
