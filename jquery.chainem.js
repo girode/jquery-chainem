@@ -85,14 +85,16 @@
                         
                         
                         // Trigger chaining event in next combo!!
-                        $(nextSelect).trigger('chaining', [ nextVal ]);
+                        $(nextSelect).trigger('chaining', [ nextVal, previousValues ]);
                     } 
                     
                 });
                 
                 // Set chaining event
-                $(this).on('chaining', function(e, val){
+                $(this).on('chaining', function(e, val, pv){
                     plug.fillCombo($(this), val);
+                    
+                    pv[$(this).prop('id')] = $(this).val(); 
                     
                     if(typeof nextSelect !== 'undefined')
                         $(nextSelect).trigger('chaining', [ 0 ]);
