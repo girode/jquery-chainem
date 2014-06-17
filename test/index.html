@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>jquery-chainem Test Suite</title>
+        <link rel="stylesheet" href="qunit-1.14.0.css">
+        <script src="qunit-1.14.0.js"></script>
+        <script src="../js/jquery.min.js"></script>
+        <script src="../jquery.simulate.js"></script>
+        <script src="../jquery.chainem.js"></script>
+        <script src="tests.js"></script>
+    </head>
+    <body>
+        <div id="qunit"></div>
+        <form>
+            <label for="espectaculo"><strong>Espectaculo</strong></label>
+            <select name="A" id="espectaculo" class="chain">
+                <option value="0">NS</option>
+                <option value="1">Obra de Teatro</option>
+                <option value="2">Pelicula</option>
+            </select>
+            
+            <label for="genero"><strong>Genero</strong></label>
+            <select name="B" id="genero" class="chain">
+                <option value="0">NS</option>
+                <option value="1">Comedia</option>
+                <option value="2">Accion</option>
+                <option value="3">Extravagante</option>
+            </select>
+            
+            <label for="funcion"><strong>Función</strong></label>
+            <select name="C" id="funcion" class="chain">
+                <option value="0">NS</option>
+                <option value="1">Iron Man 3</option>
+                <option value="2">La familia de mi novia</option>
+                <option value="3">Stravaganza</option>
+                <option value="4">Les Luthiers</option>
+            </select>
+            
+        </form>
+        <div id="qunit-fixture"></div>
+    </body>
+</html>

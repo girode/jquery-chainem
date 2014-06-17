@@ -68,13 +68,14 @@
             $elements.each(function(i, elem){
                 
                 var nextSelect = $elements.get(i+1),
-                    myId = $(this).prop('id');
+                    myId = $(this).prop('id'),
+                    nextVal;
                 
                 plug.chain[myId] = (new Link($(elem)));
                  
                 // Set change event
                 $(this).change(function(e){
-                    var nextVal, previousValues;
+                    var previousValues;
                     
                     // Is there a following combo?
                     if(typeof nextSelect !== 'undefined'){
