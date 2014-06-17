@@ -31,36 +31,33 @@ function daFuncion(genero, espectaculo){
     } else if(espectaculo == '1'){
         // obra de teatro
         switch (genero){
-            //                            case '0': ret.push('0', '1', '2', '3', '4');
-            //                            break;
+            //case '0': ret.push('0', '1', '2', '3', '4');
+            //break;
             case '1': ret.push('4');
                 break;
-            //                            case '2': ret.push('1');
-            //                            break;
+            //case '2': ret.push('1');
+            //break;
             case '3': ret.push('3');
                 break;
         }
     } else if(espectaculo == '2'){
         // pelicula
         switch (genero){
-            //                            case '0': ret.push('0', '1', '2', '3', '4');
-            //                            break;
+            //case '0': ret.push('0', '1', '2', '3', '4');
+            //break;
             case '1': ret.push('2');
                 break;
             case '2': ret.push('1');
                 break;
-            //                            case '3': ret.push('3');
-        //                            break;
+            //case '3': ret.push('3');
+            //break;
+        }
+    } 
+
+    return ret;
 }
-} 
 
-return ret;
-}
-
-
-module("Testing the jQuery Chainem Plugin");
-
-test("Setting second select option", function(){
+QUnit.moduleStart(function(){
     $('.chain').chainem({ 
         methods: {
             'genero': function(pv){
@@ -71,11 +68,43 @@ test("Setting second select option", function(){
             } 
         }
     });
+});
+
+QUnit.module("Last mode");
+
+QUnit.test("1 level chaining", function(assert){
     
-    $('#genero').simulate( "change" );
+    $('#genero')
+        .val('2')
+        .trigger('change');
     
+    assert.equal($('#funcion').val(), '1', "Selecciono el genero Accion. La funcion seleccionada debe ser Iron Man 3");
+});
+
+QUnit.test("2 level chaining", function(assert){
     
-    equal($('#funcion').val(), '3', "Deberia ser extravagante");
+    // Selecciono Pelicula
+    $('#espectaculo')
+        .val('2')
+        .trigger('change');
+
+    // Selecciono Comedia
+    $('#genero').val('1');
+   
+    // Deberia ser La familia de mi novia
+    assert.equal($('#funcion').val(), '2', "Selecciono el espectaculo Pelicula y el Genero Comedia. La funcion seleccionada debe ser La familia de mi novia");
+});
+
+QUnit.test("Picking non selected (2 levels)", function(assert){
+    
+    // Selecciono Pelicula
+    $('#espectaculo')
+        .val('0')
+        .trigger('change');
+
+    assert.equal($('#genero').val(), '0', "None selected in any select");
+    assert.equal($('#funcion').val(), '0', "None selected in any select");
+    
 });
 
 
