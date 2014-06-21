@@ -22,34 +22,114 @@
      *
      **/     
           
+    // Link       
+    // Constructor      
     function Link($select){
         this.id = $select.prop('id');
         this.options = [];
-        link = this;
+        this.select = $select;
+        this.init();
+    }   
+    
+    Link.prototype = {
+        init: function(){
+            link = this;
         
-        $select.find('option').each(function(i, e){
-           link.options.push({id: $(e).val(), val: $(e).html()});
-        });      
+            this.select.find('option').each(function(i, e){
+               link.options.push({id: $(e).val(), val: $(e).html()});
+            });            
+        },
         
-        this.getOptions = function(fil, previousValues){
-            fil = fil || function(previousValues){ return []; };
+        getOptions: function(fil, previousValues){
+            fil = fil || function(){ return []; };
 
             var ids = fil(previousValues);
             
             return $.grep(this.options, function(e){
                 return $.inArray(e.id, ids) != -1;
             });
-        };
+        },
+                
+        getSelectedValue: function () {
+            return this.select.val();
+        }
+    };
     
+    
+    // Chain
+    
+    function Chain() {
+        this.resume = {};
+        this.length = 0;
+        this.splice = function () {};
+    }
+    
+    Chain.prototype.updateResume = function (id, value){
+        this.resume[id] = value;
+    },
+    
+    Chain.prototype.getSelectedValues = function (endId){
+        return this.resume;
         
-    }      
-          
+//        var myarr = {};
+//            
+//        for(var i=0;i<this.length;i++){
+//            var id  = this[i]['id'],
+//                sel = this[i].getSelectedValue();
+//        
+//            myarr[id] = sel;
+//            
+//            if(id == endId) break;
+//        }
+//            
+//        return myarr;
+    };
+    
+    Chain.prototype.push = function (){
+        var originalMethod = Array.prototype.push,
+            args           = Array.prototype.slice.call(arguments),
+            chain = this;
+        
+        for(var i=0, c=args.length; i<c; i++){
+            var a = args[i];
+            
+            chain.updateResume(a.id, a.getSelectedValue());
+            
+            a.select
+                .change(function(e){
+                    chain.getChangeBehaviour(e, a);   
+                })
+                .on('chaining', function(){
+                    chain.getChainingBehaviour();
+                });
+                     
+        }
+    
+        return originalMethod.apply(this, args);
+    };
+    
+    Chain.prototype.getChangeBehaviour = function(e, link) {
+        // console.log(this); // this = chain
+        // console.log(link);
+        this.updateResume(link.id, link.getSelectedValue());
+        
+        console.log(this.getSelectedValues(link.id));
+        
+        // this = chain
+        // this[0] primer link de la cadena
+    };
+    
+    Chain.prototype.getChainingBehaviour = function() {
+        alert("ch-behav");
+    };
+    
+    
     /* Main Plugin object
      *
      **/
 
     function Plugin(element, options) {
-        this.chain = {};
+        this.chain = new Chain();
         this.element = element;
         this.settings = $.extend({}, defaults, options);
         this._defaults = defaults;
@@ -67,43 +147,41 @@
             // Traversing the chain of elements
             $elements.each(function(i, elem){
                 
-                var nextSelect = $elements.get(i+1),
-                    myId = $(this).prop('id'),
-                    nextVal;
+                plug.chain.push(new Link($(elem)));
                 
-                plug.chain[myId] = (new Link($(elem)));
-                 
                 // Set change event
-                $(this).change(function(e){
-                    var previousValues;
-                    
-                    // Is there a following combo?
-                    if(typeof nextSelect !== 'undefined'){
-                        // What value should I put in it?
-                        previousValues = plug.getSelectedValues(myId);
-                        nextVal = plug.getNextValue(previousValues, $(nextSelect));
-                        
-                        // Trigger chaining event in next combo!!
-                        $(nextSelect).trigger('chaining', [ nextVal, previousValues ]);
-                    } 
-                    
-                });
+//                $(this).change(function(){
+//                    var previousValues;
+//                    
+//                    // Is there a following combo?
+//                    if(typeof nextSelect !== 'undefined'){
+//                        // What value should I put in it?
+//                        previousValues = plug.getSelectedValues(myId);
+//                        nextVal = plug.getNextValue(previousValues, $(nextSelect));
+//                        
+//                        // Trigger chaining event in next combo!!
+//                        $(nextSelect).trigger('chaining', [ nextVal, previousValues ]);
+//                    } 
+//                    
+//                });
                 
                 // Set chaining event
-                $(this).on('chaining', function(e, val, pv){
-                    plug.fillCombo($(this), val);
-                    pv[myId] = $(this).val(); 
-                    
-                    if(typeof nextSelect !== 'undefined'){
-                        nextVal = plug.getNextValue(pv, $(nextSelect));
-                    
-                        $(nextSelect).trigger('chaining', [ nextVal , pv ]);
-                    }
-                });
+//                $(this).on('chaining', function(e, val, pv){
+//                    plug.fillCombo($(this), val);
+//                    pv[myId] = $(this).val(); 
+//                    
+//                    if(typeof nextSelect !== 'undefined'){
+//                        nextVal = plug.getNextValue(pv, $(nextSelect));
+//                    
+//                        $(nextSelect).trigger('chaining', [ nextVal , pv ]);
+//                    }
+//                });
                 
                 
             });
             
+            
+//            console.log(this.chain.resume);
             
         },
         
