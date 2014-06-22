@@ -28,6 +28,7 @@
         this.id = $select.prop('id');
         this.options = [];
         this.select = $select;
+        this.next = null;
         this.init();
     }   
     
@@ -68,30 +69,46 @@
         this.resume[id] = value;
     },
     
+    // if endId, build a loop to get selected values up to
+    // this point 
     Chain.prototype.getSelectedValues = function (endId){
-        return this.resume;
+        var ret = this.resume; 
         
-//        var myarr = {};
-//            
-//        for(var i=0;i<this.length;i++){
-//            var id  = this[i]['id'],
-//                sel = this[i].getSelectedValue();
-//        
-//            myarr[id] = sel;
-//            
-//            if(id == endId) break;
-//        }
-//            
-//        return myarr;
+        if(typeof endId !== "undefined"){
+            ret = {};
+            
+            // value = link
+            $.each(this, function(key, value){
+                
+               var id   = value.select.prop('id'),
+                   sel  = value.select.val();
+               
+               ret[id] = sel;
+                         
+               if(id == endId) return false;
+            });
+        }
+
+        return ret;
     };
     
+    Chain.prototype.knit = function(){
+        for(var i=0, c=this.length; i<c; i++)
+            this[i].next = this[i+1];
+        
+        this[this.length-1].next = false;
+    };
+    
+
     Chain.prototype.push = function (){
         var originalMethod = Array.prototype.push,
             args           = Array.prototype.slice.call(arguments),
             chain = this;
         
+        
         for(var i=0, c=args.length; i<c; i++){
-            var a = args[i];
+              
+            var a = args[i]; // a = link
             
             chain.updateResume(a.id, a.getSelectedValue());
             
@@ -99,8 +116,8 @@
                 .change(function(e){
                     chain.getChangeBehaviour(e, a);   
                 })
-                .on('chaining', function(){
-                    chain.getChainingBehaviour();
+                .on('chaining', function(e){
+                    chain.getChainingBehaviour(e, a);
                 });
                      
         }
@@ -109,18 +126,26 @@
     };
     
     Chain.prototype.getChangeBehaviour = function(e, link) {
+        alert("changed"); 
         // console.log(this); // this = chain
         // console.log(link);
         this.updateResume(link.id, link.getSelectedValue());
         
-        console.log(this.getSelectedValues(link.id));
+//         console.log(this.getSelectedValues(link.id));
+//        console.log(this.getSelectedValues());
         
         // this = chain
         // this[0] primer link de la cadena
+        if(link.next.select)
+            link.next.select.trigger('chaining');
+        
     };
     
-    Chain.prototype.getChainingBehaviour = function() {
+    Chain.prototype.getChainingBehaviour = function(e, link) {
         alert("ch-behav");
+        
+        if(link.next.select)
+            link.next.select.trigger('chaining');
     };
     
     
@@ -143,6 +168,7 @@
             
             var plug = this;
             var $elements = this.element;
+            
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){
@@ -180,8 +206,9 @@
                 
             });
             
+            this.chain.knit();
             
-//            console.log(this.chain.resume);
+            console.log(this.chain);
             
         },
         
