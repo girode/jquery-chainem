@@ -24,11 +24,12 @@
           
     // Link       
     // Constructor      
-    function Link($select){
+    function Link($select, methods){
         this.id = $select.prop('id');
         this.options = [];
         this.select = $select;
-        this.next = null;
+        this.getNext = null;
+        this.method = methods[this.id];
         this.init();
     }   
     
@@ -53,7 +54,28 @@
                 
         getSelectedValue: function () {
             return this.select.val();
+        },
+                
+        fillSelect: function (options) {
+            var select = this.select;
+                    
+            select.empty();
+
+            $.each(options, function(index, elem) {
+                
+                select.append(
+                    $('<option></option>')
+                        .val(elem.id)
+                        .html(elem.val) 
+                    ); 
+                });
+        },        
+                
+        updateOptions: function (pv) {
+            var newOptions = this.getOptions(this.method, pv);
+            this.fillSelect(newOptions);
         }
+            
     };
     
     
@@ -92,18 +114,11 @@
         return ret;
     };
     
-    Chain.prototype.knit = function(){
-        for(var i=0, c=this.length; i<c; i++)
-            this[i].next = this[i+1];
-        
-        this[this.length-1].next = false;
-    };
-    
-
     Chain.prototype.push = function (){
         var originalMethod = Array.prototype.push,
             args           = Array.prototype.slice.call(arguments),
-            chain = this;
+            chain          = this,
+            currentLength  = this.length;
         
         
         for(var i=0, c=args.length; i<c; i++){
@@ -120,32 +135,42 @@
                     chain.getChainingBehaviour(e, a);
                 });
                      
+            a.getNext = function(){
+                return chain[currentLength+1];
+            };  
+                     
         }
     
         return originalMethod.apply(this, args);
     };
     
     Chain.prototype.getChangeBehaviour = function(e, link) {
-        alert("changed"); 
-        // console.log(this); // this = chain
-        // console.log(link);
+        var next;
+        
         this.updateResume(link.id, link.getSelectedValue());
-        
-//         console.log(this.getSelectedValues(link.id));
-//        console.log(this.getSelectedValues());
-        
-        // this = chain
-        // this[0] primer link de la cadena
-        if(link.next.select)
-            link.next.select.trigger('chaining');
-        
+
+        next = link.getNext();
+        if(next){
+            console.log(next);
+            next.select.trigger('chaining');
+        }
     };
     
     Chain.prototype.getChainingBehaviour = function(e, link) {
-        alert("ch-behav");
+        // Get seleceted values
+        var pv = this.getSelectedValues(link.id), next;
         
-        if(link.next.select)
-            link.next.select.trigger('chaining');
+        link.updateOptions(pv);
+        
+        // actualizar el resumen        
+        this.updateResume(link.id, link.getSelectedValue());        
+                
+        // ir al siguiente combo
+        next = link.getNext();
+        if(next){
+            console.log(next);
+            next.select.trigger('chaining');
+        }
     };
     
     
@@ -169,93 +194,15 @@
             var plug = this;
             var $elements = this.element;
             
-            
             // Traversing the chain of elements
-            $elements.each(function(i, elem){
-                
-                plug.chain.push(new Link($(elem)));
-                
-                // Set change event
-//                $(this).change(function(){
-//                    var previousValues;
-//                    
-//                    // Is there a following combo?
-//                    if(typeof nextSelect !== 'undefined'){
-//                        // What value should I put in it?
-//                        previousValues = plug.getSelectedValues(myId);
-//                        nextVal = plug.getNextValue(previousValues, $(nextSelect));
-//                        
-//                        // Trigger chaining event in next combo!!
-//                        $(nextSelect).trigger('chaining', [ nextVal, previousValues ]);
-//                    } 
-//                    
-//                });
-                
-                // Set chaining event
-//                $(this).on('chaining', function(e, val, pv){
-//                    plug.fillCombo($(this), val);
-//                    pv[myId] = $(this).val(); 
-//                    
-//                    if(typeof nextSelect !== 'undefined'){
-//                        nextVal = plug.getNextValue(pv, $(nextSelect));
-//                    
-//                        $(nextSelect).trigger('chaining', [ nextVal , pv ]);
-//                    }
-//                });
-                
-                
+            $elements.each(function(i, elem){                
+                plug.chain.push(new Link($(elem), plug.settings.methods));
             });
-            
-            this.chain.knit();
-            
+      
             console.log(this.chain);
+//            this.chain.knit();
             
-        },
-        
-        getSelectedValues: function(lastId) {
-            var myarr = {};
-            
-            this.element.each(function(){
-               var id   = $(this).prop('id');
-               var sel  = $(this).val();
-               
-               myarr[id] = sel;
-                         
-               if(id == lastId) return false;
-            });
-            
-            return myarr;
-        },
-        
-        getNextValue: function(previousValues, $nextSelect){
-            var nextId = $nextSelect.prop('id');            
-            
-            return this.chain[nextId].getOptions(this.settings.methods[nextId], previousValues); 
-            
-        },
-        
-        /*
-         * fillCombo: Deletes all select options y and adds new options to select
-         * arguments: 
-         * - $combo: jQuery object representing select to be repopulated
-         * - comboOptions: An array of objects with form:
-         *   [{id: 1, val: 'val1'}, {id: 2, val: 'val2'}, {id: 3, val: 'val3'}]
-         * 
-         **/
-        
-        fillCombo: function($combo, comboOptions){
-            $combo.empty();
-
-            $.each(comboOptions, function(index, elem) {
-                
-                $combo.append(
-                    $('<option></option>')
-                        .val(elem.id)
-                        .html(elem.val) 
-                    ); 
-             });
-       }
-       
+        }
         
     };
 
