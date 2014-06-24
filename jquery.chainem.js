@@ -153,12 +153,6 @@
         };
     }
     
-    /*
-     * TODO: Let push accept more than one parameter at once.
-     * The problem being not able to assign correctly subsecuent links (getNext)
-     *
-     **/
-    
     Chain.prototype.push = function (){
         var chain          = this, 
             cBeforeAdded   = this.length;
