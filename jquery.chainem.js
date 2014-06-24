@@ -28,8 +28,8 @@
         this.id = $select.prop('id');
         this.options = [];
         this.select = $select;
-        this.getNext = null;
         this.method = method;
+        this.next = null;
         this.init();
     }   
     
@@ -114,60 +114,13 @@
         return ret;
     };
     
-    
-    /*
-     * TODO: Let push accept more than one parameter at once.
-     * The problem being not able to assign correctly subsecuent links (getNext)
-     *
-     **/
-    
-    Chain.prototype.push = function (){
-        var originalMethod = Array.prototype.push,
-            args           = Array.prototype.slice.call(arguments),
-            chain          = this,
-            cBeforeAdded   = this.length,
-            amountAdded    = 0;
-        
-        for(var i=0, c=args.length; i<c; i++){
-           
-            var a = args[i]; // a = link
-            
-            chain.updateResume(a.id, a.getSelectedValue());
-            
-            a.select
-                .change(function(e){
-                    chain.getChangeBehaviour(e, a);   
-                })
-                .on('chaining', function(e){
-                    chain.getChainingBehaviour(e, a);
-                });
-                              
-        }
-    
-        amountAdded = originalMethod.apply(this, args);
-        
-        for(i=1;i<=amountAdded;i++){
-            console.log('current: ' + (cBeforeAdded -1 + i), 'next: '+ (cBeforeAdded - 1 + i));
-            // this[cBeforeAdded-1 + i] = this[cBeforeAdded + i]; 
-        }
-        
-        
-//        a.getNext = function(){
-//                return chain[currentLength+i];
-//            };
-        
-        
-    };
-    
     Chain.prototype.getChangeBehaviour = function(e, link) {
-        var next;
+        var next = null;
         
         this.updateResume(link.id, link.getSelectedValue());
-        alert("change");
         
-        next = link.getNext();
+        next = link.next;
         if(next){
-            console.log(next);
             next.select.trigger('chaining');
         }
     };
@@ -181,15 +134,75 @@
         // actualizar el resumen        
         this.updateResume(link.id, link.getSelectedValue());        
         
-        alert("chaining");
-
         // ir al siguiente combo
-        next = link.getNext();
+        next = link.next;
         if(next){
-            console.log(next);
             next.select.trigger('chaining');
         }
     };
+    
+    function createChangeFunction(chain, i) {
+        return function(e){
+            chain.getChangeBehaviour(e, chain[i]);
+        };
+    }
+    
+    function createChainingFunction(chain, i) {
+        return function(e){
+            chain.getChainingBehaviour(e, chain[i]);
+        };
+    }
+    
+    /*
+     * TODO: Let push accept more than one parameter at once.
+     * The problem being not able to assign correctly subsecuent links (getNext)
+     *
+     **/
+    
+    Chain.prototype.push = function (){
+        var chain          = this, 
+            cBeforeAdded   = this.length;
+        
+        var newLength = Array.prototype.push.apply(this, arguments);
+        
+        // this loop traverses all chain
+        // TODO: Traverse only relevant parts of chain when adding elements
+        for(var i=0, c=newLength; i<c; i++){
+        
+            this.updateResume(this[i].id, this[i].getSelectedValue());
+            this[i].next = ((i+1) != newLength)? this[i+1]: false;
+            
+            this[i].select
+                .change(createChangeFunction(chain, i))
+                .on('chaining', createChainingFunction(chain, i));            
+        }
+        
+        
+        // Creating chain
+//        if(cBeforeAdded == 0){
+//            for(var i=0;i<amountAdded;i++){
+//                chain[i].getNext = function (){
+//                    console.log(chain[i]);
+//                    return chain[i+1];
+//                };
+//            }
+//        } 
+        // Chain already has some links
+//        else {
+//            for(var i=0;i<amountAdded-1;i++)
+//                console.log('current: ' + ((cBeforeAdded -1) + i), 'next: '+ ((cBeforeAdded - 1) + (i + 1)));
+//                  this[cBeforeAdded-1 + i] = this[cBeforeAdded-1 + (i+1)];  
+//        }
+            
+//        for(i=1;i<=amountAdded;i++){
+//            console.log('current: ' + (cBeforeAdded -1 + i), 'next: '+ (cBeforeAdded - 1 + i));
+//            // this[cBeforeAdded-1 + i] = this[cBeforeAdded + i]; 
+//        }
+        
+        
+    };
+    
+    
     
     
     /* Main Plugin object
@@ -213,10 +226,10 @@
             var $elements = this.element;
             
             // Traversing the chain of elements
-//            $elements.each(function(i, elem){            
-//                var $el = $(elem);
-//                plug.chain.push(new Link($el, plug.settings.methods[$el.prop('id')]));
-//            });
+            $elements.each(function(i, elem){            
+                var $el = $(elem);
+                plug.chain.push(new Link($el, plug.settings.methods[$el.prop('id')]));
+            });
             
             var newSel1 = $('<select></select>', {'id': 'zaraza'})
                             .append($('<option>zaraza1</option>').val('1'))
