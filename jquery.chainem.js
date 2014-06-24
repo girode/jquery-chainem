@@ -165,10 +165,12 @@
         
         var newLength = Array.prototype.push.apply(this, arguments);
         
-        // this loop traverses all chain
-        // TODO: Traverse only relevant parts of chain when adding elements
-        for(var i=0, c=newLength; i<c; i++){
-        
+        /* Traverse only relevant parts of the chain */
+        for(
+            var i = (cBeforeAdded == 0)? 0: cBeforeAdded-1, c=newLength;
+            i<c;
+            i++
+        ){
             this.updateResume(this[i].id, this[i].getSelectedValue());
             this[i].next = ((i+1) != newLength)? this[i+1]: false;
             
@@ -177,33 +179,7 @@
                 .on('chaining', createChainingFunction(chain, i));            
         }
         
-        
-        // Creating chain
-//        if(cBeforeAdded == 0){
-//            for(var i=0;i<amountAdded;i++){
-//                chain[i].getNext = function (){
-//                    console.log(chain[i]);
-//                    return chain[i+1];
-//                };
-//            }
-//        } 
-        // Chain already has some links
-//        else {
-//            for(var i=0;i<amountAdded-1;i++)
-//                console.log('current: ' + ((cBeforeAdded -1) + i), 'next: '+ ((cBeforeAdded - 1) + (i + 1)));
-//                  this[cBeforeAdded-1 + i] = this[cBeforeAdded-1 + (i+1)];  
-//        }
-            
-//        for(i=1;i<=amountAdded;i++){
-//            console.log('current: ' + (cBeforeAdded -1 + i), 'next: '+ (cBeforeAdded - 1 + i));
-//            // this[cBeforeAdded-1 + i] = this[cBeforeAdded + i]; 
-//        }
-        
-        
     };
-    
-    
-    
     
     /* Main Plugin object
      *
@@ -231,24 +207,6 @@
                 plug.chain.push(new Link($el, plug.settings.methods[$el.prop('id')]));
             });
             
-            var newSel1 = $('<select></select>', {'id': 'zaraza'})
-                            .append($('<option>zaraza1</option>').val('1'))
-                            .append($('<option>zaraza2</option>').val('2'));
-            
-            $('#funcion').after(newSel1);
-            
-            var newSel2 = $('<select></select>', {'id': 'test'})
-                            .append($('<option>test1</option>').val('1'))
-                            .append($('<option>test2</option>').val('2'));
-            
-            
-            $(newSel1).after(newSel2);
-            
-            var getTwo = function(){ return ['2']; };
-            
-            plug.chain.push(new Link(newSel1, getTwo), new Link(newSel2, getTwo));
-            
-            console.log(this.chain);
             
         }
         
