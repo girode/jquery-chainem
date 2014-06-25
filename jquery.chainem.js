@@ -191,17 +191,61 @@
 
     Plugin.prototype = {
         init: function() {
-            
             var plug = this;
             var $elements = this.element;
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
-                var $el = $(elem);
-                plug.chain.push(new Link($el, plug.settings.methods[$el.prop('id')]));
+                var $el = $(elem),
+                    id = $el.prop('id'),
+                    method = plug.getMethod(id, i);
+                    
+                plug.chain.push(new Link($el, method));
             });
             
             
+        },
+        
+        getMethod: function(id, index){
+            var method = this.settings.methods[id], remoteMethod;
+                    
+            if(!method){
+                method = this.settings.methods[id + '-remote'];
+                
+                if(method) {
+                    remoteMethod = this.getRemoteMethod(method);
+                    
+                    method = remoteMethod;
+                } else {
+                    if(index == 0){
+                        method = false;
+                    } else {
+                        throw 'Method for link not found';
+                    }
+                }
+            }    
+            
+            return method;
+        },
+        
+        getRemoteMethod: function(callback){
+            return function(pv){
+                return callback(pv);
+//                var request = $.ajax({
+//                    url: "script.php",
+//                    type: "POST",
+//                    data: { id : menuId },
+//                    dataType: "json"
+//                });
+//                
+//                request.done(function( newValues ) {
+//                    callback(newValues);
+//                });
+//                
+//                request.fail(function(jqXHR, textStatus ) {
+//                    alert( "Request failed: " + textStatus);
+//                });
+            }
         }
         
     };
