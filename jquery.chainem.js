@@ -129,12 +129,15 @@
         // Get seleceted values
         var pv = this.getSelectedValues(link.id), next;
         
+        // This method should be the one that determines whether chaining 
+        // continues or not
+        
         link.updateOptions(pv);
         
         // actualizar el resumen        
         this.updateResume(link.id, link.getSelectedValue());        
         
-        // ir al siguiente combo
+        // Should chaining continue?
         next = link.next;
         if(next){
             next.select.trigger('chaining');
@@ -214,7 +217,6 @@
                 
                 if(method) {
                     remoteMethod = this.getRemoteMethod(method);
-                    
                     method = remoteMethod;
                 } else {
                     if(index == 0){
