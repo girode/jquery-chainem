@@ -24,11 +24,12 @@
           
     // Link       
     // Constructor      
-    function Link($select, method){
+    function Link($select, method, bRemote){
         this.id = $select.prop('id');
         this.options = [];
         this.select = $select;
         this.method = method;
+        this.bRemote = bRemote;
         this.next = null;
         this.init();
     }   
@@ -40,6 +41,14 @@
             this.select.find('option').each(function(i, e){
                link.options.push({id: $(e).val(), val: $(e).html()});
             });            
+        },
+        
+        hasRemoteMethod: function(){
+            return this.bRemote;
+        },
+        
+        continueChaining: function(){
+            return this.next;
         },
         
         getOptions: function(fil, previousValues){
@@ -74,6 +83,10 @@
         updateOptions: function (pv) {
             var newOptions = this.getOptions(this.method, pv);
             this.fillSelect(newOptions);
+        },
+        
+        toString: function(){
+            return 'link[' + this.id + ']->['+ this.next +']'; 
         }
             
     };
@@ -87,7 +100,10 @@
         this.splice = function () {};
     }
     
-    Chain.prototype.updateResume = function (id, value){
+    Chain.prototype.updateResume = function (link){
+        var id    = link.id, 
+            value = link.getSelectedValue();
+            
         this.resume[id] = value;
     },
     
@@ -117,7 +133,7 @@
     Chain.prototype.getChangeBehaviour = function(e, link) {
         var next = null;
         
-        this.updateResume(link.id, link.getSelectedValue());
+        this.updateResume(link);
         
         next = link.next;
         if(next){
@@ -127,21 +143,29 @@
     
     Chain.prototype.getChainingBehaviour = function(e, link) {
         // Get seleceted values
-        var pv = this.getSelectedValues(link.id), next;
-        
-        // This method should be the one that determines whether chaining 
-        // continues or not
-        
-        link.updateOptions(pv);
-        
-        // actualizar el resumen        
-        this.updateResume(link.id, link.getSelectedValue());        
+        var pv   = this.getSelectedValues(link.id), next;
+//            next = link.continueChaining();
+            
+//        console.log(link);
         
         // Should chaining continue?
+//        if(next){
+//            link.updateOptions(pv);
+//            this.updateResume(link);        
+//            next.select.trigger('chaining');
+//        }
+
+        console.log(link.continueChaining());
+
+        link.updateOptions(pv);
+        this.updateResume(link);
+        
         next = link.next;
         if(next){
             next.select.trigger('chaining');
-        }
+        } 
+
+
     };
     
     function createChangeFunction(chain, i) {
@@ -168,7 +192,7 @@
             i<c;
             i++
         ){
-            this.updateResume(this[i].id, this[i].getSelectedValue());
+            this.updateResume(this[i]);
             this[i].next = ((i+1) != newLength)? this[i+1]: false;
             
             this[i].select
@@ -203,7 +227,7 @@
                     id = $el.prop('id'),
                     method = plug.getMethod(id, i);
                     
-                plug.chain.push(new Link($el, method));
+                plug.chain.push(new Link($el, method, false));
             });
             
             
