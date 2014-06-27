@@ -67,17 +67,21 @@
                 }
                 
                 
-                $('.chain').chainem( { 
-                                       methods: {
-                                           'genero': function(pv){
-                                                return daGenero(pv.espectaculo);
-                                           },
-                                           'funcion': function(pv){
-                                               return daFuncion(pv.genero, pv.espectaculo);
-                                           } 
-                                       }
-                                     }
-                );
+                $('.chain').chainem({ 
+                    'remote-methods': {
+                        'asyncronic': true
+                    },
+                    
+                    'methods': {
+                       'genero-remote': function(pv){
+                            return daGenero(pv.espectaculo);
+                       },
+                       'funcion': function(pv){
+                           return daFuncion(pv.genero, pv.espectaculo);
+                       } 
+                    }
+                    
+                });
             });
         </script>
     </head>

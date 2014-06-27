@@ -24,12 +24,12 @@
           
     // Link       
     // Constructor      
-    function Link($select, method, bRemote){
+    function Link($select, method, shouldWait){
         this.id = $select.prop('id');
         this.options = [];
         this.select = $select;
         this.method = method;
-        this.bRemote = bRemote;
+        this.shouldWait = shouldWait;
         this.next = null;
         this.init();
     }   
@@ -43,12 +43,8 @@
             });            
         },
         
-        hasRemoteMethod: function(){
-            return this.bRemote;
-        },
-        
         continueChaining: function(){
-            return this.next;
+            return !this.shouldWait;
         },
         
         getOptions: function(fil, previousValues){
@@ -86,7 +82,7 @@
         },
         
         toString: function(){
-            return 'link[' + this.id + ']->['+ this.next +']'; 
+            return 'link[' + this.id + ']'; // ->['+ this.next +'] 
         }
             
     };
@@ -144,27 +140,18 @@
     Chain.prototype.getChainingBehaviour = function(e, link) {
         // Get seleceted values
         var pv   = this.getSelectedValues(link.id), next;
-//            next = link.continueChaining();
-            
-//        console.log(link);
-        
-        // Should chaining continue?
-//        if(next){
-//            link.updateOptions(pv);
-//            this.updateResume(link);        
-//            next.select.trigger('chaining');
-//        }
 
-        // la pinga
-        console.log(link.continueChaining());
+        if(link.continueChaining()){
+            link.updateOptions(pv);
+            this.updateResume(link);
 
-        link.updateOptions(pv);
-        this.updateResume(link);
-        
-        next = link.next;
-        if(next){
-            next.select.trigger('chaining');
-        } 
+            next = link.next;
+            if(next){
+                next.select.trigger('chaining');
+            }             
+        } else {
+            console.log('chaining stopped');
+        }
 
 
     };
@@ -203,6 +190,15 @@
         
     };
     
+    Chain.prototype.toString = function(){
+        var i = 0, ret = '';
+        while(this[i]){
+            ret += this[i].toString() + ((this[i].next)? '->': '');
+            i++;
+        }
+        return ret;
+    }
+    
     /* Main Plugin object
      *
      **/
@@ -226,11 +222,13 @@
             $elements.each(function(i, elem){            
                 var $el = $(elem),
                     id = $el.prop('id'),
-                    method = plug.getMethod(id, i);
+                    method = plug.getMethod(id, i),
+                    isRemote = plug.isRemote(id);
                     
-                plug.chain.push(new Link($el, method, false));
+                plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
             });
             
+            console.log(plug.chain);
             
         },
         
@@ -253,6 +251,11 @@
             }    
             
             return method;
+        },
+        
+        isRemote: function(id){
+            var cond = this.settings.methods[id + '-remote'];
+            return (cond)? true: false;
         },
         
         getRemoteMethod: function(callback){
