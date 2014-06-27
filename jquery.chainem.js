@@ -155,6 +155,7 @@
 //            next.select.trigger('chaining');
 //        }
 
+        // la pinga
         console.log(link.continueChaining());
 
         link.updateOptions(pv);
