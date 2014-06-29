@@ -126,47 +126,42 @@
 
         return ret;
     };
-    
-    Chain.prototype.getChangeBehaviour = function(e, link) {
-        var next = null;
-        
-        this.updateResume(link);
-        
-        next = link.next;
-        if(next){
-            next.select.trigger('chaining');
-        }
-    };
-    
-    Chain.prototype.getChainingBehaviour = function(e, link) {
-        // Get seleceted values
-        var pv   = this.getSelectedValues(link.id), next;
 
-        if(link.continueChaining()){
-            link.updateOptions(pv);
-            this.updateResume(link);
+    Chain.prototype.getChangeBehaviour = function(link) {
+        var chain = this;
+        
+        return function(e){
+            var next = null;
+
+            chain.updateResume(link);
 
             next = link.next;
             if(next){
                 next.select.trigger('chaining');
-            }             
-        } else {
-            link.method(link, pv);
-        }
-
+            }
+        };
     };
     
-    function createChangeFunction(chain, i) {
-        return function(e){
-            chain.getChangeBehaviour(e, chain[i]);
+    Chain.prototype.getChainingBehaviour = function(link) {
+        var chain = this;
+        
+        return function(e) {
+            // Get seleceted values
+            var pv = chain.getSelectedValues(link.id), next;
+
+            if(link.continueChaining()){
+                link.updateOptions(pv);
+                chain.updateResume(link);
+
+                next = link.next;
+                if(next){
+                    next.select.trigger('chaining');
+                }             
+            } else {
+                link.method(link, pv);
+            }
         };
-    }
-    
-    function createChainingFunction(chain, i) {
-        return function(e){
-            chain.getChainingBehaviour(e, chain[i]);
-        };
-    }
+    };
     
     Chain.prototype.push = function (){
         var chain          = this, 
@@ -183,9 +178,15 @@
             this.updateResume(this[i]);
             this[i].next = ((i+1) != newLength)? this[i+1]: false;
             
+//            this[i].select
+//                .change(createChangeFunction(chain, i))
+//                .on('chaining', createChainingFunction(chain, i));            
+
             this[i].select
-                .change(createChangeFunction(chain, i))
-                .on('chaining', createChainingFunction(chain, i));            
+                .change(this.getChangeBehaviour(this[i]))
+                .on('chaining', this.getChainingBehaviour(this[i]));
+                
+
         }
         
     };
