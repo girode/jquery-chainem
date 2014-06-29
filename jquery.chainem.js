@@ -47,7 +47,7 @@
             return !this.shouldWait;
         },
         
-        getOptions: function(fil, previousValues){
+        getOptions: function(previousValues, fil){
             fil = fil || function(){ return []; };
 
             var ids = fil(previousValues);
@@ -76,8 +76,10 @@
                 });
         },        
                 
-        updateOptions: function (pv) {
-            var newOptions = this.getOptions(this.method, pv);
+        updateOptions: function (pv, method) {
+            method = method || this.method;
+    
+            var newOptions = this.getOptions(pv, method);
             this.fillSelect(newOptions);
         },
         
@@ -103,8 +105,7 @@
         this.resume[id] = value;
     },
     
-    // if endId, build a loop to get selected values up to
-    // this point 
+    /* if endId, build a loop to get selected values up to  this point */
     Chain.prototype.getSelectedValues = function (endId){
         var ret = this.resume; 
         
@@ -150,9 +151,8 @@
                 next.select.trigger('chaining');
             }             
         } else {
-            console.log('chaining stopped');
+            link.method(link, pv);
         }
-
 
     };
     
@@ -233,14 +233,13 @@
         },
         
         getMethod: function(id, index){
-            var method = this.settings.methods[id], remoteMethod;
+            var method = this.settings.methods[id], remoteMethod = null;
                     
             if(!method){
-                method = this.settings.methods[id + '-remote'];
+                remoteMethod = this.settings.methods[id + '-remote'];
                 
-                if(method) {
-                    remoteMethod = this.getRemoteMethod(method);
-                    method = remoteMethod;
+                if(remoteMethod) {
+                    method = this.getRemoteMethod(remoteMethod);
                 } else {
                     if(index == 0){
                         method = false;
@@ -250,7 +249,7 @@
                 }
             }    
             
-            return method;
+            return method? method: remoteMethod;
         },
         
         isRemote: function(id){
@@ -258,24 +257,40 @@
             return (cond)? true: false;
         },
         
-        getRemoteMethod: function(callback){
-            return function(pv){
-                return callback(pv);
-//                var request = $.ajax({
-//                    url: "script.php",
-//                    type: "POST",
-//                    data: { id : menuId },
-//                    dataType: "json"
-//                });
-//                
-//                request.done(function( newValues ) {
-//                    callback(newValues);
-//                });
-//                
-//                request.fail(function(jqXHR, textStatus ) {
-//                    alert( "Request failed: " + textStatus);
-//                });
-            }
+        getRemoteMethod: function(rm){
+            var chain = this.chain;
+    
+            return function(link, pv){
+                
+                var request;
+                
+                if(request) request.abort();
+                
+                request = $.ajax({
+                    url: "http://localhost/answer_script.php",
+                    type: "POST",
+                    data:  pv,
+                    dataType: "json"
+                });
+                
+                request.done(function( newValues ) {
+                    var next;
+                    link.updateOptions(newValues, rm);
+                    
+                    chain.updateResume(link);
+
+                    next = link.next;
+                    if(next){
+                        next.select.trigger('chaining');
+                    }
+                    
+                });
+                
+                request.fail(function(jqXHR, textStatus ) {
+                    console.log( "External Request failed: " + textStatus);
+                });
+                
+            };
         }
         
     };
