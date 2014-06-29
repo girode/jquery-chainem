@@ -177,10 +177,6 @@
         ){
             this.updateResume(this[i]);
             this[i].next = ((i+1) != newLength)? this[i+1]: false;
-            
-//            this[i].select
-//                .change(createChangeFunction(chain, i))
-//                .on('chaining', createChainingFunction(chain, i));            
 
             this[i].select
                 .change(this.getChangeBehaviour(this[i]))
