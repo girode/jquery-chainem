@@ -8,7 +8,15 @@
 
     var pluginName = "chainem",
                     defaults = {
-                        propertyName: "value",
+                        remoteErrorHandler: function(errMsg){
+                            console.log("External Request failed: " + errMsg);
+                        },
+                        'remote-methods': {
+                            asyncronic: true,
+                            patternize: true,                        
+                            url: 'http://localhost/answer_script.php',
+                            pattern: 'get'
+                        },        
                         /*
                          * combination: Selects a combination of all combos
                          * last: Help to filter and select the last combo
@@ -29,14 +37,14 @@
         this.options = [];
         this.select = $select;
         this.method = method;
-        this.shouldWait = shouldWait;
+        this.shouldWait = shouldWait; 
         this.next = null;
         this.init();
     }   
     
     Link.prototype = {
         init: function(){
-            link = this;
+            var link = this;
         
             this.select.find('option').each(function(i, e){
                link.options.push({id: $(e).val(), val: $(e).html()});
@@ -47,20 +55,6 @@
             return !this.shouldWait;
         },
         
-        getOptions: function(previousValues, fil){
-            fil = fil || function(){ return []; };
-
-            var ids = fil(previousValues);
-            
-            return $.grep(this.options, function(e){
-                return $.inArray(e.id, ids) != -1;
-            });
-        },
-                
-        getSelectedValue: function () {
-            return this.select.val();
-        },
-                
         fillSelect: function (options) {
             var select = this.select;
                     
@@ -82,6 +76,25 @@
             var newOptions = this.getOptions(pv, method);
             this.fillSelect(newOptions);
         },
+                
+        getOptionsFromRemoteSource: function (pv){
+            this.method(pv);
+        },
+        
+        getOptions: function(previousValues, fil){
+            fil = fil || function(){ return []; };
+
+            var ids = fil(previousValues);
+            
+            return $.grep(this.options, function(e){
+                return $.inArray(e.id, ids) != -1;
+            });
+        },
+                
+        getSelectedValue: function () {
+            return this.select.val();
+        },
+        
         
         toString: function(){
             return 'link[' + this.id + ']'; // ->['+ this.next +'] 
@@ -158,7 +171,7 @@
                     next.select.trigger('chaining');
                 }             
             } else {
-                link.method(link, pv);
+                link.getOptionsFromRemoteSource(pv);
             }
         };
     };
@@ -194,7 +207,7 @@
             i++;
         }
         return ret;
-    }
+    };
     
     /* Main Plugin object
      *
@@ -203,7 +216,7 @@
     function Plugin(element, options) {
         this.chain = new Chain();
         this.element = element;
-        this.settings = $.extend({}, defaults, options);
+        this.settings = $.extend(true, {}, defaults, options);
         this._defaults = defaults;
         this._name = pluginName;
         this.init();
@@ -236,7 +249,7 @@
                 remoteMethod = this.settings.methods[id + '-remote'];
                 
                 if(remoteMethod) {
-                    method = this.getRemoteMethod(remoteMethod);
+                    method = this.getRemoteMethod(remoteMethod, id);
                 } else {
                     if(index == 0){
                         method = false;
@@ -254,39 +267,54 @@
             return (cond)? true: false;
         },
         
-        getRemoteMethod: function(rm){
-            var chain = this.chain;
+        getRemoteMethod: function(rm, id){
+            var plug  = this,
+                chain = this.chain;
     
-            return function(link, pv){
+            return function(pv){
                 
-                var request;
+                var request,
+                    link = this;
                 
                 if(request) request.abort();
                 
-                request = $.ajax({
-                    url: "http://localhost/answer_script.php",
-                    type: "POST",
-                    data:  pv,
-                    dataType: "json"
-                });
+                request = $.ajax(plug.setupAjax(pv, id));
                 
                 request.done(function( newValues ) {
                     var next;
                     link.updateOptions(newValues, rm);
-                    
                     chain.updateResume(link);
 
                     next = link.next;
                     if(next){
                         next.select.trigger('chaining');
                     }
-                    
+
                 });
                 
                 request.fail(function(jqXHR, textStatus ) {
-                    console.log( "External Request failed: " + textStatus);
+                    plug.settings['remoteErrorHandler'](textStatus);
                 });
                 
+            };
+        },
+                
+        setupAjax: function(pv, id){
+            var url = '',
+                remoteSettings = this.settings['remote-methods'];         
+                    
+            url += remoteSettings['url'];
+            url += (remoteSettings['patternize'])? 
+                        '/' + remoteSettings['pattern'] + id.charAt(0).toUpperCase() + id.slice(1) 
+                        : 
+                        '';
+    
+            return {
+                url: url,
+                async: remoteSettings['asyncronic'],
+                type: "POST",
+                data:  (remoteSettings['patternize'])? pv: {'pv': pv, 'get': id},
+                dataType: "json"
             };
         }
         
