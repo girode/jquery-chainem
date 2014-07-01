@@ -176,18 +176,21 @@
         };
     };
     
+    /* TODO: Fix this method to solve multiple calling bug */
     Chain.prototype.push = function (){
-        var chain          = this, 
-            cBeforeAdded   = this.length;
+        var cBeforeAdded = this.length;
+        
+        console.log('cBeforeAdded: '+ cBeforeAdded);
         
         var newLength = Array.prototype.push.apply(this, arguments);
         
         /* Traverse only relevant parts of the chain */
         for(
-            var i = (cBeforeAdded == 0)? 0: cBeforeAdded-1, c=newLength;
+            var i = (cBeforeAdded == 0)? 0: cBeforeAdded-1, c=newLength, a = console.log('i: ' + i, 'c: ' + c);
             i<c;
             i++
         ){
+            
             this.updateResume(this[i]);
             this[i].next = ((i+1) != newLength)? this[i+1]: false;
 
