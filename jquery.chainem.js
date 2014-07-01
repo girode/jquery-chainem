@@ -14,7 +14,7 @@
                         'remote-methods': {
                             asyncronic: true,
                             patternize: true,                        
-                            url: 'http://localhost/answer_script.php',
+                            url: 'http://localhost/jquery-chainem/test_remote_script.php',
                             pattern: 'get'
                         },        
                         /*
@@ -176,31 +176,30 @@
         };
     };
     
-    /* TODO: Fix this method to solve multiple calling bug */
     Chain.prototype.push = function (){
-        var cBeforeAdded = this.length;
+
+        var pointOfInsertion = 0, cBeforeAdded;
         
-        console.log('cBeforeAdded: '+ cBeforeAdded);
-        
-        var newLength = Array.prototype.push.apply(this, arguments);
-        
-        /* Traverse only relevant parts of the chain */
-        for(
-            var i = (cBeforeAdded == 0)? 0: cBeforeAdded-1, c=newLength, a = console.log('i: ' + i, 'c: ' + c);
-            i<c;
-            i++
-        ){
+        // Connect all to be inserted links
+        for(var i=0, c=arguments.length; i<c; i++){
+            arguments[i].next = (i+1 === c)? false: arguments[i];
             
-            this.updateResume(this[i]);
-            this[i].next = ((i+1) != newLength)? this[i+1]: false;
-
-            this[i].select
-                .change(this.getChangeBehaviour(this[i]))
-                .on('chaining', this.getChainingBehaviour(this[i]));
-                
-
+            arguments[i].select
+                .change(this.getChangeBehaviour(arguments[i]))
+                .on('chaining', this.getChainingBehaviour(arguments[i]));
+            
         }
         
+        cBeforeAdded = this.length;
+
+        // Insert them 
+        Array.prototype.push.apply(this, arguments);
+        
+        pointOfInsertion = (cBeforeAdded === 0)? 0: cBeforeAdded-1;
+        
+        // Connect previous last link to the first newly inserted link
+        this[pointOfInsertion].next = this[pointOfInsertion+1];
+
     };
     
     Chain.prototype.toString = function(){
