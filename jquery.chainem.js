@@ -32,21 +32,26 @@
           
     // Link       
     // Constructor      
-    function Link($select, method, shouldWait){
-        this.id = $select.prop('id');
-        this.options = [];
-        this.select = $select;
+    function Link($element, method, shouldWait){
+        this.element = $element;
+        this.id = $element.prop('id');
         this.method = method;
-        this.shouldWait = shouldWait; 
         this.next = null;
-        this.init();
+        this.shouldWait = shouldWait; 
+        
+        if($element.is('select')){
+            this.options = [];
+            this.initSelect();
+        } else {
+            alert('es otra cosa');
+        }
     }   
     
     Link.prototype = {
-        init: function(){
+        initSelect: function(){
             var link = this;
         
-            this.select.find('option').each(function(i, e){
+            this.element.find('option').each(function(i, e){
                link.options.push({id: $(e).val(), val: $(e).html()});
             });            
         },
@@ -56,7 +61,7 @@
         },
         
         fillSelect: function (options) {
-            var select = this.select;
+            var select = this.element;
                     
             select.empty();
 
@@ -92,14 +97,12 @@
         },
                 
         getSelectedValue: function () {
-            return this.select.val();
+            return this.element.val();
         },
-        
         
         toString: function(){
             return 'link[' + this.id + ']'; // ->['+ this.next +'] 
-        }
-            
+        }            
     };
     
     
@@ -126,10 +129,10 @@
             ret = {};
             
             // value = link
-            $.each(this, function(key, value){
+            $.each(this, function(key, link){
                 
-               var id   = value.select.prop('id'),
-                   sel  = value.select.val();
+               var id   = link.element.prop('id'),
+                   sel  = link.element.val();
                
                ret[id] = sel;
                          
@@ -150,7 +153,7 @@
 
             next = link.next;
             if(next){
-                next.select.trigger('chaining');
+                next.element.trigger('chaining');
             }
         };
     };
@@ -168,7 +171,7 @@
 
                 next = link.next;
                 if(next){
-                    next.select.trigger('chaining');
+                    next.element.trigger('chaining');
                 }             
             } else {
                 link.getOptionsFromRemoteSource(pv);
@@ -184,7 +187,7 @@
         for(var i=0, c=arguments.length; i<c; i++){
             arguments[i].next = (i+1 === c)? false: arguments[i];
             
-            arguments[i].select
+            arguments[i].element
                 .change(this.getChangeBehaviour(arguments[i]))
                 .on('chaining', this.getChainingBehaviour(arguments[i]));
             
@@ -223,7 +226,6 @@
         this._name = pluginName;
         this.init();
     }
-
 
     Plugin.prototype = {
         init: function() {
@@ -289,7 +291,7 @@
 
                     next = link.next;
                     if(next){
-                        next.select.trigger('chaining');
+                        next.element.trigger('chaining');
                     }
 
                 });
