@@ -1,17 +1,17 @@
 // Devuelve genero en funcion del espectaculo
-function daGenero(espectaculo){
-    var ret = [];
-    switch(espectaculo){
-        case '0': ret.push('0', '1', '2', '3');
-            break;
-        case '1': ret.push('1', '3');
-            break;
-        case '2': ret.push('1', '2');
-            break;
-    }
-    
-    return ret;
-}
+//function daGenero(espectaculo){
+//    var ret = [];
+//    switch(espectaculo){
+//        case '0': ret.push('0', '1', '2', '3');
+//            break;
+//        case '1': ret.push('1', '3');
+//            break;
+//        case '2': ret.push('1', '2');
+//            break;
+//    }
+//    
+//    return ret;
+//}
 
 // devuelve funcion en funcion del genero y el espectacilo
 function daFuncion(genero, espectaculo){
@@ -57,31 +57,43 @@ function daFuncion(genero, espectaculo){
     return ret;
 }
 
-QUnit.moduleStart(function(){
-    $('.chain').chainem({ 
-        methods: {
-            'genero': function(pv){
-                return daGenero(pv.espectaculo);
+
+QUnit.module("last mode", {
+    setup: function() {
+        
+        /* Firefox only: Reset on refresh */
+        $('#espectaculo').attr('autocomplete', 'off'); 
+        $('#genero').attr('autocomplete', 'off'); 
+        $('#funcion').attr('autocomplete', 'off');
+        
+        $('.chain').chainem({ 
+            'remote-methods': {
+                patternize: false
             },
-            'funcion': function(pv){
-                return daFuncion(pv.genero, pv.espectaculo);
-            } 
-        }
-    });
+
+            'methods': {
+               'genero-remote': function(pv){
+                    return pv;
+               },
+               'funcion': function(pv){
+                   return daFuncion(pv.genero, pv.espectaculo);
+               } 
+            }
+        });
+    }
 });
 
-QUnit.module("Last mode");
 
-QUnit.test("1 level chaining", function(assert){
+QUnit.test("Local chaining (1 level)", function(assert){
     
     $('#genero')
         .val('2')
         .trigger('change');
     
-    assert.equal($('#funcion').val(), '1', "Selecciono el genero Accion. La funcion seleccionada debe ser Iron Man 3");
+    assert.equal($('#funcion').val(), '1', "Selecciono el genero Accion (2). La funcion seleccionada debe ser Iron Man 3 (1)");
 });
 
-QUnit.test("2 level chaining", function(assert){
+QUnit.asyncTest("Remote chaining (1 level)", function(assert){
     
     // Selecciono Pelicula
     $('#espectaculo')
@@ -90,25 +102,11 @@ QUnit.test("2 level chaining", function(assert){
 
     // Selecciono Comedia
     $('#genero').val('1');
-   
-    // Deberia ser La familia de mi novia
-    assert.equal($('#funcion').val(), '2', "Selecciono el espectaculo Pelicula y el Genero Comedia. La funcion seleccionada debe ser La familia de mi novia");
-});
-
-QUnit.test("Picking non selected (2 levels)", function(assert){
     
-    // Selecciono Pelicula
-    $('#espectaculo')
-        .val('0')
-        .trigger('change');
-
-    assert.equal($('#genero').val(), '0', "None selected in any select");
-    assert.equal($('#funcion').val(), '0', "None selected in any select");
+     setTimeout(function() {
+        // Deberia ser La familia de mi novia
+        assert.equal($('#funcion').val(), '2', "Selecciono el espectaculo Pelicula (2) y el Genero Comedia (1). La funcion seleccionada debe ser 'La familia de mi novia' (2)");
+        QUnit.start();
+     }, 150 );
     
 });
-
-
-
-                
-                
-                

@@ -240,7 +240,7 @@
                 plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
             });
             
-            console.log(plug.chain);
+//            console.log(plug.chain);
             
         },
         
