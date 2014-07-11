@@ -25,10 +25,123 @@
                         selectMode: "last" 
                     };
 
-    /*
-     * Custom objects
-     *
-     **/     
+
+
+    function genericLink(){
+        
+        // Determina lo que hago cuando activan el encadenamiento
+        // El encadenamiento se puede disparar por cualquier evento del dom
+        this.executeFirst = function(chain, e){
+            chain.updateResume(this);
+
+            if(this.next){
+                this.next.element.trigger('chaining');
+            }
+        };
+        
+        // Determina que hago sobre cada eslabon de la cadena
+        this.actOnElement = function(){
+            
+        };
+        
+        // Determina como me muevo al siguiente eslabon
+        this.moveToNext = function(chain, e){
+            var pv = chain.getSelectedValues(link.id), next;
+
+            if(this.continueChaining()){
+                this.updateOptions(pv);
+                chain.updateResume(this);
+
+                if(this.next){
+                    this.next.element.trigger('chaining');
+                }
+                
+            } else {
+                this.getOptionsFromRemoteSource(pv);
+            }
+            
+        };
+        
+        
+    }                
+
+    
+    // Chain
+    
+    function Chain() {
+        this.resume = {};
+        this.length = 0;
+        this.splice = function () {};
+    }
+    
+    Chain.prototype = {
+        /* if endId, build a loop to get selected values up to  this point */
+        getValues: function (elementToBeQueried){
+            var ret = {}, id, sel; 
+
+            // value = link
+            $.each(this, function(key, link){
+
+               id   = link.element.prop('id');
+               sel  = (elementToBeQueried === 'value')? 
+                        link.element.val(): 
+                        link.element.attr(elementToBeQueried);
+
+               ret[id] = sel;
+            });
+
+            return ret;
+        },
+                
+        getFiringBehaviour: function(link) {
+            return function(e){
+                link.executeFirst(this, e);
+            };
+        },
+                
+        getChainingBehaviour: function(link) {
+            return function(e) {
+               link.moveToNext(this, e);
+            };
+        },
+                
+        push: function (){
+
+            var pointOfInsertion = 0, cBeforeAdded;
+
+            // Connect all to be inserted links
+            for(var i=0, c=arguments.length; i<c; i++){
+                arguments[i].next = (i+1 === c)? false: arguments[i];
+
+                arguments[i].element
+                    .change(this.getChangeBehaviour(arguments[i]))
+                    .on('chaining', this.getChainingBehaviour(arguments[i]));
+
+            }
+
+            cBeforeAdded = this.length;
+
+            // Insert them 
+            Array.prototype.push.apply(this, arguments);
+
+            pointOfInsertion = (cBeforeAdded === 0)? 0: cBeforeAdded-1;
+
+            // Connect previous last link to the first newly inserted link
+            this[pointOfInsertion].next = this[pointOfInsertion+1];
+
+        },
+        
+        toString: function(){
+            var i = 0, ret = '';
+            while(this[i]){
+                ret += this[i].toString() + ((this[i].next)? '->': '');
+                i++;
+            }
+            return ret;
+        }
+
+    };
+    
           
     // Link       
     // Constructor      
@@ -105,114 +218,6 @@
         }            
     };
     
-    
-    // Chain
-    
-    function Chain() {
-        this.resume = {};
-        this.length = 0;
-        this.splice = function () {};
-    }
-    
-    Chain.prototype.updateResume = function (link){
-        var id    = link.id, 
-            value = link.getSelectedValue();
-            
-        this.resume[id] = value;
-    },
-    
-    /* if endId, build a loop to get selected values up to  this point */
-    Chain.prototype.getSelectedValues = function (endId){
-        var ret = this.resume; 
-        
-        if(typeof endId !== "undefined"){
-            ret = {};
-            
-            // value = link
-            $.each(this, function(key, link){
-                
-               var id   = link.element.prop('id'),
-                   sel  = link.element.val();
-               
-               ret[id] = sel;
-                         
-               if(id == endId) return false;
-            });
-        }
-
-        return ret;
-    };
-
-    Chain.prototype.getChangeBehaviour = function(link) {
-        var chain = this;
-        
-        return function(e){
-            var next = null;
-
-            chain.updateResume(link);
-
-            next = link.next;
-            if(next){
-                next.element.trigger('chaining');
-            }
-        };
-    };
-    
-    Chain.prototype.getChainingBehaviour = function(link) {
-        var chain = this;
-        
-        return function(e) {
-            // Get seleceted values
-            var pv = chain.getSelectedValues(link.id), next;
-
-            if(link.continueChaining()){
-                link.updateOptions(pv);
-                chain.updateResume(link);
-
-                next = link.next;
-                if(next){
-                    next.element.trigger('chaining');
-                }             
-            } else {
-                link.getOptionsFromRemoteSource(pv);
-            }
-        };
-    };
-    
-    Chain.prototype.push = function (){
-
-        var pointOfInsertion = 0, cBeforeAdded;
-        
-        // Connect all to be inserted links
-        for(var i=0, c=arguments.length; i<c; i++){
-            arguments[i].next = (i+1 === c)? false: arguments[i];
-            
-            arguments[i].element
-                .change(this.getChangeBehaviour(arguments[i]))
-                .on('chaining', this.getChainingBehaviour(arguments[i]));
-            
-        }
-        
-        cBeforeAdded = this.length;
-
-        // Insert them 
-        Array.prototype.push.apply(this, arguments);
-        
-        pointOfInsertion = (cBeforeAdded === 0)? 0: cBeforeAdded-1;
-        
-        // Connect previous last link to the first newly inserted link
-        this[pointOfInsertion].next = this[pointOfInsertion+1];
-
-    };
-    
-    Chain.prototype.toString = function(){
-        var i = 0, ret = '';
-        while(this[i]){
-            ret += this[i].toString() + ((this[i].next)? '->': '');
-            i++;
-        }
-        return ret;
-    };
     
     /* Main Plugin object
      *
