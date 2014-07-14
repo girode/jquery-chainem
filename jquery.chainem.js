@@ -26,47 +26,143 @@
                     };
 
 
+    // Crockford Inheritance 
+    if (typeof Object.create !== 'function') {
+        Object.create = function (o) {
+            function F() {}
+            F.prototype = o;
+            return new F();
+        };
+    }                    
 
-    function genericLink(){
+
+    function genericLink($element, method, shouldWait){
+        this.element = $element;
+        this.id = $element.prop('id');
+        this.method = method;
+        this.next = null;
+        this.shouldWait = shouldWait;
+    }                
+
+
+    genericLink.prototype = {
+        moveToNext: function(){
+            var next = this.next;
+            if(next){
+                next.element.trigger('chaining');
+            }
+        },
+        
+        executeOnStartChaining: function(){
+//            chain.updateResume(this);
+        },
         
         // Determina lo que hago cuando activan el encadenamiento
         // El encadenamiento se puede disparar por cualquier evento del dom
-        this.executeFirst = function(chain, e){
-            chain.updateResume(this);
-
-            if(this.next){
-                this.next.element.trigger('chaining');
-            }
-        };
+        executeFirstLink: function(chain, e){
+            this.executeOnStartChaining();
+            this.moveToNext();
+        },
         
-        // Determina que hago sobre cada eslabon de la cadena
-        this.actOnElement = function(){
-            
-        };
+        
+        executeBeforeGoingToNext: function(){
+//            var pv = chain.getSelectedValues(this.id);
+//                this.updateOptions(pv);
+//                chain.updateResume(this);
+        },
+        
+        executeIfNotGoingToNext: function () {
+//            this.getOptionsFromRemoteSource(pv);
+        },
         
         // Determina como me muevo al siguiente eslabon
-        this.moveToNext = function(chain, e){
-            var pv = chain.getSelectedValues(link.id), next;
-
+        onChaining: function(){
             if(this.continueChaining()){
-                this.updateOptions(pv);
-                chain.updateResume(this);
-
-                if(this.next){
-                    this.next.element.trigger('chaining');
-                }
-                
+                this.executeBeforeGoingToNext();
+                this.moveToNext();
             } else {
-                this.getOptionsFromRemoteSource(pv);
-            }
-            
-        };
-        
-        
-    }                
+                this.executeIfNotGoingToNext();
+            }   
+        }
+    };
 
+          
+    function SelectLink($element, method, shouldWait){
+        // select specific options
+        this.options = [];
+        this.initSelect();
+    }   
+//    
+//    Link.prototype = {
+//        initSelect: function(){
+//            var link = this;
+//        
+//            this.element.find('option').each(function(i, e){
+//               link.options.push({id: $(e).val(), val: $(e).html()});
+//            });            
+//        },
+//        
+//        continueChaining: function(){
+//            return !this.shouldWait;
+//        },
+//        
+//        fillSelect: function (options) {
+//            var select = this.element;
+//                    
+//            select.empty();
+//
+//            $.each(options, function(index, elem) {
+//                
+//                select.append(
+//                    $('<option></option>')
+//                        .val(elem.id)
+//                        .html(elem.val) 
+//                    ); 
+//                });
+//        },        
+//                
+//        updateOptions: function (pv, method) {
+//            method = method || this.method;
+//    
+//            var newOptions = this.getOptions(pv, method);
+//            this.fillSelect(newOptions);
+//        },
+//                
+//        getOptionsFromRemoteSource: function (pv){
+//            this.method(pv);
+//        },
+//        
+//        getOptions: function(previousValues, fil){
+//            fil = fil || function(){ return []; };
+//
+//            var ids = fil(previousValues);
+//            
+//            return $.grep(this.options, function(e){
+//                return $.inArray(e.id, ids) != -1;
+//            });
+//        },
+//                
+//        getSelectedValue: function () {
+//            return this.element.val();
+//        },
+//        
+//        toString: function(){
+//            return 'link[' + this.id + ']'; // ->['+ this.next +'] 
+//        }            
+//    };
+
+    SelectLink.prototype.toString = function(){
+        return 'link[' + this.id + ']'; // ->['+ this.next +'] 
+    };            
     
-    // Chain
+    function createSelectLink(){
+//        var Object.create = new GenericLink();
+        
+        
+    }
+    
+    
+    /* Chain model */ 
     
     function Chain() {
         this.resume = {};
@@ -76,34 +172,34 @@
     
     Chain.prototype = {
         /* if endId, build a loop to get selected values up to  this point */
-        getValues: function (elementToBeQueried){
-            var ret = {}, id, sel; 
-
-            // value = link
-            $.each(this, function(key, link){
-
-               id   = link.element.prop('id');
-               sel  = (elementToBeQueried === 'value')? 
-                        link.element.val(): 
-                        link.element.attr(elementToBeQueried);
-
-               ret[id] = sel;
-            });
-
-            return ret;
-        },
-                
-        getFiringBehaviour: function(link) {
-            return function(e){
-                link.executeFirst(this, e);
-            };
-        },
-                
-        getChainingBehaviour: function(link) {
-            return function(e) {
-               link.moveToNext(this, e);
-            };
-        },
+//        getValues: function (elementToBeQueried){
+//            var ret = {}, id, sel; 
+//
+//            // value = link
+//            $.each(this, function(key, link){
+//
+//               id   = link.element.prop('id');
+//               sel  = (elementToBeQueried === 'value')? 
+//                        link.element.val(): 
+//                        link.element.attr(elementToBeQueried);
+//
+//               ret[id] = sel;
+//            });
+//
+//            return ret;
+//        },
+//                
+//        getFiringBehaviour: function(link) {
+//            return function(e){
+//                link.executeFirst(this, e);
+//            };
+//        },
+//                
+//        getChainingBehaviour: function(link) {
+//            return function(e) {
+//               link.moveToNext(this, e);
+//            };
+//        },
                 
         push: function (){
 
@@ -113,9 +209,9 @@
             for(var i=0, c=arguments.length; i<c; i++){
                 arguments[i].next = (i+1 === c)? false: arguments[i];
 
-                arguments[i].element
-                    .change(this.getChangeBehaviour(arguments[i]))
-                    .on('chaining', this.getChainingBehaviour(arguments[i]));
+//                arguments[i].element
+//                    .change(this.getChangeBehaviour(arguments[i]))
+//                    .on('chaining', this.getChainingBehaviour(arguments[i]));
 
             }
 
@@ -143,80 +239,7 @@
     };
     
           
-    // Link       
-    // Constructor      
-    function Link($element, method, shouldWait){
-        this.element = $element;
-        this.id = $element.prop('id');
-        this.method = method;
-        this.next = null;
-        this.shouldWait = shouldWait; 
-        
-        if($element.is('select')){
-            this.options = [];
-            this.initSelect();
-        } else {
-            alert('es otra cosa');
-        }
-    }   
     
-    Link.prototype = {
-        initSelect: function(){
-            var link = this;
-        
-            this.element.find('option').each(function(i, e){
-               link.options.push({id: $(e).val(), val: $(e).html()});
-            });            
-        },
-        
-        continueChaining: function(){
-            return !this.shouldWait;
-        },
-        
-        fillSelect: function (options) {
-            var select = this.element;
-                    
-            select.empty();
-
-            $.each(options, function(index, elem) {
-                
-                select.append(
-                    $('<option></option>')
-                        .val(elem.id)
-                        .html(elem.val) 
-                    ); 
-                });
-        },        
-                
-        updateOptions: function (pv, method) {
-            method = method || this.method;
-    
-            var newOptions = this.getOptions(pv, method);
-            this.fillSelect(newOptions);
-        },
-                
-        getOptionsFromRemoteSource: function (pv){
-            this.method(pv);
-        },
-        
-        getOptions: function(previousValues, fil){
-            fil = fil || function(){ return []; };
-
-            var ids = fil(previousValues);
-            
-            return $.grep(this.options, function(e){
-                return $.inArray(e.id, ids) != -1;
-            });
-        },
-                
-        getSelectedValue: function () {
-            return this.element.val();
-        },
-        
-        toString: function(){
-            return 'link[' + this.id + ']'; // ->['+ this.next +'] 
-        }            
-    };
     
     
     /* Main Plugin object
@@ -234,20 +257,23 @@
 
     Plugin.prototype = {
         init: function() {
-            var plug = this;
-            var $elements = this.element;
+//            var plug = this;
+//            var $elements = this.element;
             
             // Traversing the chain of elements
-            $elements.each(function(i, elem){            
-                var $el = $(elem),
-                    id = $el.prop('id'),
-                    method = plug.getMethod(id, i),
-                    isRemote = plug.isRemote(id);
-                    
-                plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
-            });
+//            $elements.each(function(i, elem){            
+//                var $el = $(elem),
+//                    id = $el.prop('id'),
+//                    method = plug.getMethod(id, i),
+//                    isRemote = plug.isRemote(id);
+//                    
+//                plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
+//            });
             
-//            console.log(plug.chain);
+            var l = genericLink.create(SelectLink);
+            
+            console.log(l);
+            
             
         },
         
