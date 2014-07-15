@@ -85,13 +85,20 @@
             }   
         }
     };
-
-          
+    
     function SelectLink($element, method, shouldWait){
+        
+        // Es necesario?
+        genericLink.call(this, $element, method, shouldWait);
+        
         // select specific options
         this.options = [];
-        this.initSelect();
+//        this.initSelect();
     }   
+    
+    SelectLink.prototype = Object.create(genericLink.prototype);
+    SelectLink.prototype.constructor = SelectLink;
+    
 //    
 //    Link.prototype = {
 //        initSelect: function(){
@@ -154,12 +161,6 @@
     SelectLink.prototype.toString = function(){
         return 'link[' + this.id + ']'; // ->['+ this.next +'] 
     };            
-    
-    function createSelectLink(){
-//        var Object.create = new GenericLink();
-        
-        
-    }
     
     
     /* Chain model */ 
@@ -270,9 +271,13 @@
 //                plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
 //            });
             
-            var l = genericLink.create(SelectLink);
+            var l;
             
-            console.log(l);
+            this.element.each(function(i, elem){
+                l = new SelectLink($(elem), function(){}, false);
+                console.log(l);
+            });
+            
             
             
         },
