@@ -41,9 +41,9 @@
         this.id = $element.prop('id');
         this.method = method;
         this.next = null;
+        this.chain = null;
         this.shouldWait = shouldWait;
     }                
-
 
     genericLink.prototype = {
         moveToNext: function(){
@@ -53,27 +53,18 @@
             }
         },
         
-        executeOnStartChaining: function(){
-//            chain.updateResume(this);
-        },
+        executeOnStartChaining: function(){},
         
         // Determina lo que hago cuando activan el encadenamiento
         // El encadenamiento se puede disparar por cualquier evento del dom
-        executeFirstLink: function(chain, e){
+        executeFirstLink: function(){
             this.executeOnStartChaining();
             this.moveToNext();
         },
         
+        executeBeforeGoingToNext: function(){},
         
-        executeBeforeGoingToNext: function(){
-//            var pv = chain.getSelectedValues(this.id);
-//                this.updateOptions(pv);
-//                chain.updateResume(this);
-        },
-        
-        executeIfNotGoingToNext: function () {
-//            this.getOptionsFromRemoteSource(pv);
-        },
+        executeIfNotGoingToNext: function(){},
         
         // Determina como me muevo al siguiente eslabon
         onChaining: function(){
@@ -88,79 +79,90 @@
     
     function SelectLink($element, method, shouldWait){
         
-        // Es necesario?
         genericLink.call(this, $element, method, shouldWait);
         
         // select specific options
         this.options = [];
-//        this.initSelect();
+        this.init();
     }   
     
     SelectLink.prototype = Object.create(genericLink.prototype);
     SelectLink.prototype.constructor = SelectLink;
-    
-//    
-//    Link.prototype = {
-//        initSelect: function(){
-//            var link = this;
-//        
-//            this.element.find('option').each(function(i, e){
-//               link.options.push({id: $(e).val(), val: $(e).html()});
-//            });            
-//        },
-//        
-//        continueChaining: function(){
-//            return !this.shouldWait;
-//        },
-//        
-//        fillSelect: function (options) {
-//            var select = this.element;
-//                    
-//            select.empty();
-//
-//            $.each(options, function(index, elem) {
-//                
-//                select.append(
-//                    $('<option></option>')
-//                        .val(elem.id)
-//                        .html(elem.val) 
-//                    ); 
-//                });
-//        },        
-//                
-//        updateOptions: function (pv, method) {
-//            method = method || this.method;
-//    
-//            var newOptions = this.getOptions(pv, method);
-//            this.fillSelect(newOptions);
-//        },
-//                
-//        getOptionsFromRemoteSource: function (pv){
-//            this.method(pv);
-//        },
-//        
-//        getOptions: function(previousValues, fil){
-//            fil = fil || function(){ return []; };
-//
-//            var ids = fil(previousValues);
-//            
-//            return $.grep(this.options, function(e){
-//                return $.inArray(e.id, ids) != -1;
-//            });
-//        },
-//                
-//        getSelectedValue: function () {
-//            return this.element.val();
-//        },
-//        
-//        toString: function(){
-//            return 'link[' + this.id + ']'; // ->['+ this.next +'] 
-//        }            
-//    };
 
     SelectLink.prototype.toString = function(){
         return 'link[' + this.id + ']'; // ->['+ this.next +'] 
-    };            
+    };   
+    
+    SelectLink.prototype.init = function(){
+        var link = this;
+
+        this.element.find('option').each(function(i, e){
+           link.options.push({id: $(e).val(), val: $(e).html()});
+        });            
+        
+        this.element.change(this.getChangeBehaviour(arguments[i]))
+                    .on('chaining', this.getChainingBehaviour(arguments[i]));
+    };
+    
+    SelectLink.prototype.continueChaining = function(){
+        return !this.shouldWait;
+    };
+    
+    SelectLink.prototype.fillSelect = function (options) {
+        var select = this.element;
+
+        select.empty();
+
+        $.each(options, function(index, elem) {
+
+            select.append(
+                $('<option></option>')
+                    .val(elem.id)
+                    .html(elem.val) 
+                ); 
+            });
+    };        
+    
+    SelectLink.prototype.updateOptions = function (pv, method) {
+        method = method || this.method;
+
+        var newOptions = this.getOptions(pv, method);
+        this.fillSelect(newOptions);
+    };
+    
+    SelectLink.prototype.getOptionsFromRemoteSource = function (pv){
+        this.method(pv);
+    };
+    
+    SelectLink.prototype.getOptions = function(previousValues, fil){
+        fil = fil || function(){ return []; };
+
+        var ids = fil(previousValues);
+
+        return $.grep(this.options, function(e){
+            return $.inArray(e.id, ids) != -1;
+        });
+    };
+            
+    SelectLink.prototype.getSelectedValue = function () {
+        return this.element.val();
+    };
+    
+    /* Implementing genericLink methods */
+    SelectLink.prototype.executeOnStartChaining = function(){
+        this.chain.updateResume(this);
+    };
+    
+    SelectLink.prototype.executeBeforeGoingToNext = function(){
+        var pv = chain.getSelectedValues(this.id);
+        this.updateOptions(pv);
+        this.chain.updateResume(this);
+    };
+        
+    SelectLink.prototype.executeIfNotGoingToNext = function(){
+        var pv = chain.getSelectedValues(this.id);
+        this.getOptionsFromRemoteSource(pv);
+    };
     
     
     /* Chain model */ 
@@ -204,16 +206,12 @@
                 
         push: function (){
 
-            var pointOfInsertion = 0, cBeforeAdded;
+            var pointOfInsertion = 0, cBeforeAdded, chain = this;
 
             // Connect all to be inserted links
             for(var i=0, c=arguments.length; i<c; i++){
                 arguments[i].next = (i+1 === c)? false: arguments[i];
-
-//                arguments[i].element
-//                    .change(this.getChangeBehaviour(arguments[i]))
-//                    .on('chaining', this.getChainingBehaviour(arguments[i]));
-
+                arguments[i].chain = chain;
             }
 
             cBeforeAdded = this.length;
