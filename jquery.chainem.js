@@ -53,9 +53,7 @@
             }
         },
         
-        executeOnStartChaining: function(){
-            console.log('test');
-        },
+        executeOnStartChaining: function(){},
         
         // Determina lo que hago cuando activan el encadenamiento
         // El encadenamiento se puede disparar por cualquier evento del dom
@@ -162,13 +160,13 @@
     };
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
-        var pv = chain.getSelectedValues(this.id);
+        var pv = this.chain.getSelectedValues(this.id);
         this.updateOptions(pv);
         this.chain.updateResume(this);
     };
         
     SelectLink.prototype.executeIfNotGoingToNext = function(){
-        var pv = chain.getSelectedValues(this.id);
+        var pv = this.chain.getSelectedValues(this.id);
         this.getOptionsFromRemoteSource(pv);
     };
     
@@ -182,6 +180,14 @@
     }
     
     Chain.prototype = {
+        
+        updateResume: function (link){
+            var id    = link.id, 
+                value = link.getSelectedValue();
+
+            this.resume[id] = value;
+        },
+        
         getSelectedValues: function (elementToBeQueried){
             var ret = {}, id, sel; 
 
