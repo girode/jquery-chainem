@@ -7,23 +7,23 @@
 ;(function($, window, document, undefined) {
 
     var pluginName = "chainem",
-                    defaults = {
-                        remoteErrorHandler: function(errMsg){
-                            console.log("External Request failed: " + errMsg);
-                        },
-                        'remote-methods': {
-                            asyncronic: true,
-                            patternize: true,                        
-                            url: 'http://localhost/jquery-chainem/test_remote_script.php',
-                            pattern: 'get'
-                        },        
-                        /*
-                         * combination: Selects a combination of all combos
-                         * last: Help to filter and select the last combo
-                         * 
-                         **/
-                        selectMode: "last" 
-                    };
+        defaults = {
+            remoteErrorHandler: function(errMsg){
+                console.log("External Request failed: " + errMsg);
+            },
+            'remote-methods': {
+                asyncronic: true,
+                patternize: true,                        
+                url: 'http://localhost/jquery-chainem/test_remote_script.php',
+                pattern: 'get'
+            },        
+            /*
+             * combination: Selects a combination of all combos
+             * last: Help to filter and select the last combo
+             * 
+             **/
+            selectMode: "last" 
+        };
 
 
     // Crockford Inheritance 
@@ -41,11 +41,14 @@
         this.id = $element.prop('id');
         this.method = method;
         this.next = null;
-        this.chain = null;
         this.shouldWait = shouldWait;
     }                
 
     genericLink.prototype = {
+        
+        // Chain must be shares across all instances of genericLink
+        chain: null,
+
         moveToNext: function(){
             var next = this.next;
             if(next){
@@ -156,17 +159,17 @@
     
     /* Implementing genericLink methods */
     SelectLink.prototype.executeOnStartChaining = function(){
-        this.chain.updateResume(this);
+//        this.chain.updateResume(this);
     };
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
-        var pv = this.chain.getSelectedValues(this.id);
+        var pv = this.chain.getSelectedValues('value');
         this.updateOptions(pv);
-        this.chain.updateResume(this);
+//        this.chain.updateResume(this);
     };
         
     SelectLink.prototype.executeIfNotGoingToNext = function(){
-        var pv = this.chain.getSelectedValues(this.id);
+        var pv = this.chain.getSelectedValues('value');
         this.getOptionsFromRemoteSource(pv);
     };
     
@@ -174,19 +177,19 @@
     /* Chain model */ 
     
     function Chain() {
-        this.resume = {};
+//        this.resume = {};
         this.length = 0;
         this.splice = function () {};
     }
     
     Chain.prototype = {
         
-        updateResume: function (link){
-            var id    = link.id, 
-                value = link.getSelectedValue();
-
-            this.resume[id] = value;
-        },
+//        updateResume: function (link){
+//            var id    = link.id, 
+//                value = link.getSelectedValue();
+//
+//            this.resume[id] = value;
+//        },
         
         getSelectedValues: function (elementToBeQueried){
             var ret = {}, id, sel; 
@@ -194,7 +197,7 @@
             // value = link
             $.each(this, function(key, link){
 
-               id   = link.element.prop('id');
+               id   = link.id;
                sel  = (elementToBeQueried === 'value')? 
                         link.element.val(): 
                         link.element.attr(elementToBeQueried);
@@ -204,19 +207,7 @@
 
             return ret;
         },
-//                
-//        getFiringBehaviour: function(link) {
-//            return function(e){
-//                link.executeFirst(this, e);
-//            };
-//        },
-//                
-//        getChainingBehaviour: function(link) {
-//            return function(e) {
-//               link.moveToNext(this, e);
-//            };
-//        },
-                
+ 
         push: function (){
 
             var pointOfInsertion = 0, cBeforeAdded, chain = this;
@@ -250,9 +241,6 @@
 
     };
     
-          
-    
-    
     
     /* Main Plugin object
      *
@@ -282,14 +270,7 @@
                 plug.chain.push(new SelectLink($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
             });
             
-//            var l;
-//            
-//            this.element.each(function(i, elem){
-//                l = new SelectLink($(elem), function(){}, false);
-//                console.log(l);
-//            });
-            
-            
+//            console.log(plug.chain);
             
         },
         
@@ -334,7 +315,7 @@
                 request.done(function( newValues ) {
                     var next;
                     link.updateOptions(newValues, rm);
-                    chain.updateResume(link);
+//                    chain.updateResume(link);
 
                     next = link.next;
                     if(next){
