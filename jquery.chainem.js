@@ -53,7 +53,9 @@
             }
         },
         
-        executeOnStartChaining: function(){},
+        executeOnStartChaining: function(){
+            console.log('test');
+        },
         
         // Determina lo que hago cuando activan el encadenamiento
         // El encadenamiento se puede disparar por cualquier evento del dom
@@ -100,8 +102,14 @@
            link.options.push({id: $(e).val(), val: $(e).html()});
         });            
         
-        this.element.change(this.getChangeBehaviour(arguments[i]))
-                    .on('chaining', this.getChainingBehaviour(arguments[i]));
+        // .change
+        this.element
+            .on('change', function(){
+                link.executeFirstLink();
+            })
+            .on('chaining', function (){
+                link.onChaining();
+            });
     };
     
     SelectLink.prototype.continueChaining = function(){
@@ -174,23 +182,22 @@
     }
     
     Chain.prototype = {
-        /* if endId, build a loop to get selected values up to  this point */
-//        getValues: function (elementToBeQueried){
-//            var ret = {}, id, sel; 
-//
-//            // value = link
-//            $.each(this, function(key, link){
-//
-//               id   = link.element.prop('id');
-//               sel  = (elementToBeQueried === 'value')? 
-//                        link.element.val(): 
-//                        link.element.attr(elementToBeQueried);
-//
-//               ret[id] = sel;
-//            });
-//
-//            return ret;
-//        },
+        getSelectedValues: function (elementToBeQueried){
+            var ret = {}, id, sel; 
+
+            // value = link
+            $.each(this, function(key, link){
+
+               id   = link.element.prop('id');
+               sel  = (elementToBeQueried === 'value')? 
+                        link.element.val(): 
+                        link.element.attr(elementToBeQueried);
+
+               ret[id] = sel;
+            });
+
+            return ret;
+        },
 //                
 //        getFiringBehaviour: function(link) {
 //            return function(e){
@@ -256,25 +263,25 @@
 
     Plugin.prototype = {
         init: function() {
-//            var plug = this;
-//            var $elements = this.element;
+            var plug = this;
+            var $elements = this.element;
             
             // Traversing the chain of elements
-//            $elements.each(function(i, elem){            
-//                var $el = $(elem),
-//                    id = $el.prop('id'),
-//                    method = plug.getMethod(id, i),
-//                    isRemote = plug.isRemote(id);
-//                    
-//                plug.chain.push(new Link($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
-//            });
-            
-            var l;
-            
-            this.element.each(function(i, elem){
-                l = new SelectLink($(elem), function(){}, false);
-                console.log(l);
+            $elements.each(function(i, elem){            
+                var $el = $(elem),
+                    id = $el.prop('id'),
+                    method = plug.getMethod(id, i),
+                    isRemote = plug.isRemote(id);
+                    
+                plug.chain.push(new SelectLink($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
             });
+            
+//            var l;
+//            
+//            this.element.each(function(i, elem){
+//                l = new SelectLink($(elem), function(){}, false);
+//                console.log(l);
+//            });
             
             
             
