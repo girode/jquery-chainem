@@ -12,7 +12,7 @@
                 console.log("External Request failed: " + errMsg);
             },
             'remote-methods': {
-                asyncronic: true,
+                asyncronic: true, // Esto es un poco redundante, ya que el plugin trabaja en modo asincronico
                 patternize: true,                        
                 url: 'http://localhost/jquery-chainem/test_remote_script.php',
                 pattern: 'get'
@@ -36,6 +36,8 @@
     }                    
 
 
+    // Defino clase base de la cual heredan todos las 
+    // subclases (subtipos) de (generic)Link
     function genericLink($element, method, shouldWait){
         this.element = $element;
         this.id = $element.prop('id');
@@ -77,11 +79,17 @@
             } else {
                 this.executeIfNotGoingToNext();
             }   
+        },
+        
+        toString: function(next){
+            return 'link[' + this.id + ']' + (next)? this.next: '';
         }
+        
     };
     
     function SelectLink($element, method, shouldWait){
         
+        // super(), a la Java
         genericLink.call(this, $element, method, shouldWait);
         
         // select specific options
@@ -89,12 +97,9 @@
         this.init();
     }   
     
+    // Siguientes dos lineas: Hago que SelectLink herede de genericLink
     SelectLink.prototype = Object.create(genericLink.prototype);
     SelectLink.prototype.constructor = SelectLink;
-
-    SelectLink.prototype.toString = function(){
-        return 'link[' + this.id + ']'; // ->['+ this.next +'] 
-    };   
     
     SelectLink.prototype.init = function(){
         var link = this;
