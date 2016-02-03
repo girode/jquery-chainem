@@ -35,7 +35,6 @@
         };
     }                    
 
-
     // Defino clase base de la cual heredan todos las 
     // subclases (subtipos) de (generic)Link
     function genericLink($element, method, shouldWait){
@@ -87,13 +86,11 @@
         
     };
     
+    /* Select Link */
+    
     function SelectLink($element, method, shouldWait){
-        
         // super(), a la Java
         genericLink.call(this, $element, method, shouldWait);
-        
-        // select specific options
-        this.options = [];
         this.init();
     }   
     
@@ -103,10 +100,7 @@
     
     SelectLink.prototype.init = function(){
         var link = this;
-
-        this.element.find('option').each(function(i, e){
-           link.options.push({id: $(e).val(), val: $(e).html()});
-        });            
+        this.loadOptions();
         
         // .change
         this.element
@@ -116,6 +110,15 @@
             .on('chaining', function (){
                 link.onChaining();
             });
+    };
+    
+    SelectLink.prototype.loadOptions = function (){
+        this.options = [];
+        var link = this;
+        
+        this.element.find('option').each(function(i, e){
+           link.options.push({id: $(e).val(), val: $(e).html()});
+        }); 
     };
     
     SelectLink.prototype.continueChaining = function(){
@@ -162,21 +165,52 @@
         return this.element.val();
     };
     
-    /* Implementing genericLink methods */
-    SelectLink.prototype.executeOnStartChaining = function(){
-//        this.chain.updateResume(this);
-    };
+    /* Implementing genericLink methods
+    SelectLink.prototype.executeOnStartChaining = function(){};
+    */
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
-        var pv = this.chain.getSelectedValues('value');
-        this.updateOptions(pv);
-//        this.chain.updateResume(this);
+        var previousValues = this.chain.getSelectedValues('value');
+        this.updateOptions(previousValues);
     };
         
     SelectLink.prototype.executeIfNotGoingToNext = function(){
-        var pv = this.chain.getSelectedValues('value');
-        this.getOptionsFromRemoteSource(pv);
+        var previousValues = this.chain.getSelectedValues('value');
+        this.getOptionsFromRemoteSource(previousValues);
     };
+    
+    /* Checkbox Link
+    
+    function CheckboxLink($element, method, shouldWait){
+        
+        // super(), a la Java
+        genericLink.call(this, $element, method, shouldWait);
+        
+        // select specific options
+        this.options = [];
+        this.init();
+    }   
+    
+    // Siguientes dos lineas: Hago que SelectLink herede de genericLink
+    CheckboxLink.prototype = Object.create(genericLink.prototype);
+    CheckboxLink.prototype.constructor = CheckboxLink;
+    
+    CheckboxLink.prototype.init = function(){
+        var link = this;
+
+        this.element.find('option').each(function(i, e){
+           link.options.push({id: $(e).val(), val: $(e).html()});
+        });            
+        
+        this.element
+            .on('change', function(){
+                link.executeFirstLink();
+            })
+            .on('chaining', function (){
+                link.onChaining();
+            });
+    };
+    */
     
     
     /* Chain model */ 
@@ -272,7 +306,18 @@
                     method = plug.getMethod(id, i),
                     isRemote = plug.isRemote(id);
                     
-                plug.chain.push(new SelectLink($el, method, isRemote && plug.settings['remote-methods']['asyncronic']));
+                var link = null, linkType = $el.prop("tagName").toLowerCase();
+                switch (linkType){
+                    case 'select':
+                        link = new SelectLink(
+                            $el, 
+                            method, 
+                            isRemote && plug.settings['remote-methods']['asyncronic']
+                        );
+                    break;
+                }
+                    
+                plug.chain.push(link);
             });
             
 //            console.log(plug.chain);
