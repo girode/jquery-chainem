@@ -165,10 +165,6 @@
         return this.element.val();
     };
     
-    /* Implementing genericLink methods
-    SelectLink.prototype.executeOnStartChaining = function(){};
-    */
-    
     SelectLink.prototype.executeBeforeGoingToNext = function(){
         var previousValues = this.chain.getSelectedValues('value');
         this.updateOptions(previousValues);
@@ -216,19 +212,12 @@
     /* Chain model */ 
     
     function Chain() {
-//        this.resume = {};
         this.length = 0;
         this.splice = function () {};
     }
     
     Chain.prototype = {
         
-//        updateResume: function (link){
-//            var id    = link.id, 
-//                value = link.getSelectedValue();
-//
-//            this.resume[id] = value;
-//        },
         
         getSelectedValues: function (elementToBeQueried){
             var ret = {}, id, sel; 
@@ -236,6 +225,9 @@
             // value = link
             $.each(this, function(key, link){
 
+               // Modificar aca. Link sabe como combinar sus valores
+               // implementar el metodo getSelectedValue en SelectLink
+               // y en genericLink
                id   = link.id;
                sel  = (elementToBeQueried === 'value')? 
                         link.element.val(): 
@@ -307,6 +299,8 @@
                     isRemote = plug.isRemote(id);
                     
                 var link = null, linkType = $el.prop("tagName").toLowerCase();
+                
+                // Agregar tipos de links aca 
                 switch (linkType){
                     case 'select':
                         link = new SelectLink(
@@ -319,8 +313,6 @@
                     
                 plug.chain.push(link);
             });
-            
-//            console.log(plug.chain);
             
         },
         
@@ -365,7 +357,6 @@
                 request.done(function( newValues ) {
                     var next;
                     link.updateOptions(newValues, rm);
-//                    chain.updateResume(link);
 
                     next = link.next;
                     if(next){
