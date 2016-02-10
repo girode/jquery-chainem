@@ -92,6 +92,7 @@
     SelectLink.prototype.constructor = SelectLink;
     
     function SelectLink($element, method, shouldWait){
+        this.options = [];
         // super(), a la Java
         genericLink.call(this, $element, method, shouldWait);
         this.init();
@@ -112,7 +113,6 @@
     };
     
     SelectLink.prototype.loadOptions = function (){
-        this.options = [];
         var link = this;
         
         this.element.find('option').each(function(i, e){
@@ -139,15 +139,15 @@
             });
     };        
     
-    SelectLink.prototype.updateOptions = function (pv, method) {
+    SelectLink.prototype.updateOptions = function (previousValues, method) {
         method = method || this.method;
 
-        var newOptions = this.getOptions(pv, method);
+        var newOptions = this.getOptions(previousValues, method);
         this.fillSelect(newOptions);
     };
     
-    SelectLink.prototype.getOptionsFromRemoteSource = function (pv){
-        this.method(pv);
+    SelectLink.prototype.getOptionsFromRemoteSource = function (previousValues){
+        this.method(previousValues);
     };
     
     SelectLink.prototype.getOptions = function(previousValues, fil){
@@ -316,7 +316,7 @@
                     if(index == 0){
                         method = false;
                     } else {
-                        throw 'Method for link not found';
+                        throw this.pluginName + ': Method for link not found';
                     }
                 }
             }    
@@ -325,8 +325,7 @@
         },
         
         isRemote: function(id){
-            var cond = this.settings.methods[id + '-remote'];
-            return (cond)? true: false;
+            return this.settings.methods[id + '-remote'];
         },
         
         getRemoteMethod: function(rm, id){
