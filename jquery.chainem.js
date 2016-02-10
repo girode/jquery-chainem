@@ -47,7 +47,7 @@
 
     genericLink.prototype = {
         
-        // Chain must be shares across all instances of genericLink
+        // Chain must be shared across all instances of genericLink
         chain: null,
 
         moveToNext: function(){
@@ -87,6 +87,9 @@
     };
     
     /* Select Link */
+    // SelectLink inherits from genericLink
+    SelectLink.prototype = Object.create(genericLink.prototype);
+    SelectLink.prototype.constructor = SelectLink;
     
     function SelectLink($element, method, shouldWait){
         // super(), a la Java
@@ -94,14 +97,10 @@
         this.init();
     }   
     
-    // Siguientes dos lineas: Hago que SelectLink herede de genericLink
-    SelectLink.prototype = Object.create(genericLink.prototype);
-    SelectLink.prototype.constructor = SelectLink;
-    
     SelectLink.prototype.init = function(){
-        var link = this;
         this.loadOptions();
         
+        var link = this;
         // .change
         this.element
             .on('change', function(){
@@ -166,12 +165,12 @@
     };
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
-        var previousValues = this.chain.getSelectedValues('value');
+        var previousValues = this.chain.getSelectedValues();
         this.updateOptions(previousValues);
     };
         
     SelectLink.prototype.executeIfNotGoingToNext = function(){
-        var previousValues = this.chain.getSelectedValues('value');
+        var previousValues = this.chain.getSelectedValues();
         this.getOptionsFromRemoteSource(previousValues);
     };
     
@@ -218,22 +217,11 @@
     
     Chain.prototype = {
         
-        
-        getSelectedValues: function (elementToBeQueried){
-            var ret = {}, id, sel; 
+        getSelectedValues: function (){
+            var ret = {}; 
 
-            // value = link
-            $.each(this, function(key, link){
-
-               // Modificar aca. Link sabe como combinar sus valores
-               // implementar el metodo getSelectedValue en SelectLink
-               // y en genericLink
-               id   = link.id;
-               sel  = (elementToBeQueried === 'value')? 
-                        link.element.val(): 
-                        link.element.attr(elementToBeQueried);
-
-               ret[id] = sel;
+            $.each(this, function(k, link){
+               ret[link.id] = link.getSelectedValue();
             });
 
             return ret;
