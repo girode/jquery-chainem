@@ -14,7 +14,7 @@
         return $ret;
     }
     
-    $espectaculo = $_POST['pv']['espectaculo'];
+    $espectaculo = $_POST['previousValues']['espectaculo'];
     
     echo json_encode(daGenero($espectaculo));
     

@@ -283,7 +283,7 @@
             $elements.each(function(i, elem){            
                 var $el = $(elem),
                     id = $el.prop('id'),
-                    method = plug.getMethod(id, i),
+                    method = plug.getSourceMethod(id, i),
                     isRemote = plug.isRemote(id);
                     
                 var link = null, linkType = $el.prop("tagName").toLowerCase();
@@ -304,15 +304,16 @@
             
         },
         
-        getMethod: function(id, index){
-            var method = this.settings.methods[id], remoteMethod = null;
+        getSourceMethod: function(id, index){
+            var method = this.settings.methods[id], onRemoteSuccessMethod = null;
                     
             if(!method){
-                remoteMethod = this.settings.methods[id + '-remote'];
+                onRemoteSuccessMethod = this.settings.methods[id + '-remote'];
                 
-                if(remoteMethod) {
-                    method = this.getRemoteMethod(remoteMethod, id);
+                if(onRemoteSuccessMethod) {
+                    method = this.assembleRemoteMethod(onRemoteSuccessMethod, id);
                 } else {
+                    // First link options remain the same
                     if(index == 0){
                         method = false;
                     } else {
@@ -321,35 +322,29 @@
                 }
             }    
             
-            return method? method: remoteMethod;
+            return method;
         },
         
         isRemote: function(id){
             return this.settings.methods[id + '-remote'];
         },
         
-        getRemoteMethod: function(rm, id){
+        assembleRemoteMethod: function(onRemoteSuccessMethod, id){
             var plug  = this,
                 chain = this.chain;
     
-            return function(pv){
+            return function(previousValues){
                 
                 var request,
                     link = this;
                 
                 if(request) request.abort();
                 
-                request = $.ajax(plug.setupAjax(pv, id));
+                request = $.ajax(plug.setupAjax(previousValues, id));
                 
                 request.done(function( newValues ) {
-                    var next;
-                    link.updateOptions(newValues, rm);
-
-                    next = link.next;
-                    if(next){
-                        next.element.trigger('chaining');
-                    }
-
+                    link.updateOptions(newValues, onRemoteSuccessMethod);
+                    link.moveToNext();
                 });
                 
                 request.fail(function(jqXHR, textStatus ) {
@@ -359,7 +354,7 @@
             };
         },
                 
-        setupAjax: function(pv, id){
+        setupAjax: function(previousValues, id){
             var url = '',
                 remoteSettings = this.settings['remote-methods'];         
                     
@@ -373,7 +368,7 @@
                 url: url,
                 async: remoteSettings['asyncronic'],
                 type: "POST",
-                data:  (remoteSettings['patternize'])? pv: {'pv': pv, 'get': id},
+                data:  (remoteSettings['patternize'])? previousValues: {'previousValues': previousValues, 'get': id},
                 dataType: "json"
             };
         }
