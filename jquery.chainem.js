@@ -330,8 +330,7 @@
         },
         
         assembleRemoteMethod: function(onRemoteSuccessMethod, id){
-            var plug  = this,
-                chain = this.chain;
+            var plug  = this;
     
             return function(previousValues){
                 
