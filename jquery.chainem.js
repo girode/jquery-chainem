@@ -12,9 +12,8 @@
                 console.log("External Request failed: " + errMsg);
             },
             'remote-methods': {
-                asyncronic: true, // Esto es un poco redundante, ya que el plugin trabaja en modo asincronico
                 patternize: true,                        
-                url: 'http://localhost/jquery-chainem/test_remote_script.php',
+                url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
             },        
             /*
@@ -37,12 +36,11 @@
 
     // Defino clase base de la cual heredan todos las 
     // subclases (subtipos) de (generic)Link
-    function genericLink($element, method, shouldWait){
+    function genericLink($element, updatingMethod){
         this.element = $element;
         this.id = $element.prop('id');
-        this.method = method;
+        this.updatingMethod = updatingMethod;
         this.next = null;
-        this.shouldWait = shouldWait;
     }                
 
     genericLink.prototype = {
@@ -57,11 +55,10 @@
             }
         },
         
+        // Need special support for first link? Override this method
         executeOnStartChaining: function(){},
         
-        // Determina lo que hago cuando activan el encadenamiento
-        // El encadenamiento se puede disparar por cualquier evento del dom
-        executeFirstLink: function(){
+        onFirstLink: function(){
             this.executeOnStartChaining();
             this.moveToNext();
         },
@@ -72,12 +69,7 @@
         
         // Determina como me muevo al siguiente eslabon
         onChaining: function(){
-            if(this.continueChaining()){
-                this.executeBeforeGoingToNext();
-                this.moveToNext();
-            } else {
-                this.executeIfNotGoingToNext();
-            }   
+            if(this.executeBeforeGoingToNext()) this.moveToNext();
         },
         
         toString: function(next){
@@ -91,10 +83,10 @@
     SelectLink.prototype = Object.create(genericLink.prototype);
     SelectLink.prototype.constructor = SelectLink;
     
-    function SelectLink($element, method, shouldWait){
+    function SelectLink($element, updatingMethod){
         this.options = [];
         // super(), a la Java
-        genericLink.call(this, $element, method, shouldWait);
+        genericLink.call(this, $element, updatingMethod);
         this.init();
     }   
     
@@ -120,9 +112,6 @@
         }); 
     };
     
-    SelectLink.prototype.continueChaining = function(){
-        return !this.shouldWait;
-    };
     
     SelectLink.prototype.fillSelect = function (options) {
         var select = this.element;
@@ -139,24 +128,10 @@
             });
     };        
     
-    SelectLink.prototype.updateOptions = function (previousValues, method) {
-        method = method || this.method;
-
-        var newOptions = this.getOptions(previousValues, method);
-        this.fillSelect(newOptions);
-    };
     
-    SelectLink.prototype.getOptionsFromRemoteSource = function (previousValues){
-        this.method(previousValues);
-    };
-    
-    SelectLink.prototype.getOptions = function(previousValues, fil){
-        fil = fil || function(){ return []; };
-
-        var ids = fil(previousValues);
-
+    SelectLink.prototype.getOptions = function(newValues){
         return $.grep(this.options, function(e){
-            return $.inArray(e.id, ids) != -1;
+            return $.inArray(e.id, newValues) != -1;
         });
     };
             
@@ -164,14 +139,20 @@
         return this.element.val();
     };
     
-    SelectLink.prototype.executeBeforeGoingToNext = function(){
-        var previousValues = this.chain.getSelectedValues();
-        this.updateOptions(previousValues);
+    SelectLink.prototype.updateOptions = function (newValues) {
+        this.fillSelect(this.getOptions(newValues));
     };
+    
+    SelectLink.prototype.executeBeforeGoingToNext = function(){
+        var previousValues = this.chain.getSelectedValues(),
+                  isRemote = this.updatingMethod.isRemote;
         
-    SelectLink.prototype.executeIfNotGoingToNext = function(){
-        var previousValues = this.chain.getSelectedValues();
-        this.getOptionsFromRemoteSource(previousValues);
+        var newValues = this.updatingMethod(previousValues);
+
+        if(!isRemote)
+            this.updateOptions(newValues);            
+        
+        return !isRemote;
     };
     
     /* Checkbox Link
@@ -276,26 +257,25 @@
 
     Plugin.prototype = {
         init: function() {
-            var plug = this;
-            var $elements = this.element;
+            var plug      = this
+                $elements = this.element,
+                link      = null,
+                linkType  = "";
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
-                var $el = $(elem),
-                    id = $el.prop('id'),
-                    method = plug.getSourceMethod(id, i),
-                    isRemote = plug.isRemote(id);
+                var $el              = $(elem),
+                    id               = $el.prop('id'),
+                    updatingMethod   = (i === 0)? function(){ return []; } : plug.getSourceMethod(id);
+
+                updatingMethod.isRemote = (i === 0)? false : plug.isRemote(id);
+
+                linkType = $el.prop("tagName").toLowerCase();
                     
-                var link = null, linkType = $el.prop("tagName").toLowerCase();
                 
                 // Agregar tipos de links aca 
                 switch (linkType){
-                    case 'select':
-                        link = new SelectLink(
-                            $el, 
-                            method, 
-                            isRemote && plug.settings['remote-methods']['asyncronic']
-                        );
+                    case 'select': link = new SelectLink($el, updatingMethod);
                     break;
                 }
                     
@@ -304,32 +284,25 @@
             
         },
         
-        getSourceMethod: function(id, index){
-            var method = this.settings.methods[id], onRemoteSuccessMethod = null;
-                    
+        getSourceMethod: function(id){
+            var method = this.settings.methods[id];
+            
             if(!method){
-                onRemoteSuccessMethod = this.settings.methods[id + '-remote'];
-                
-                if(onRemoteSuccessMethod) {
-                    method = this.assembleRemoteMethod(onRemoteSuccessMethod, id);
-                } else {
-                    // First link options remain the same
-                    if(index == 0){
-                        method = false;
-                    } else {
-                        throw this.pluginName + ': Method for link not found';
-                    }
-                }
-            }    
+                method = this.assembleRemoteMethod(id);
+                if(!method)
+                    throw this.pluginName + ': Method for link not found';
+            } 
+
             
             return method;
         },
         
         isRemote: function(id){
-            return this.settings.methods[id + '-remote'];
+            // Remote == not local method
+            return !this.settings.methods[id];
         },
         
-        assembleRemoteMethod: function(onRemoteSuccessMethod, id){
+        assembleRemoteMethod: function(id){
             var plug  = this;
     
             return function(previousValues){
@@ -342,13 +315,16 @@
                 request = $.ajax(plug.setupAjax(previousValues, id));
                 
                 request.done(function( newValues ) {
-                    link.updateOptions(newValues, onRemoteSuccessMethod);
+                    link.updateOptions(newValues);
                     link.moveToNext();
                 });
                 
                 request.fail(function(jqXHR, textStatus ) {
                     plug.settings['remoteErrorHandler'](textStatus);
                 });
+
+                // No new Values to be added from this call
+                return false;
                 
             };
         },
