@@ -72,9 +72,6 @@ QUnit.module("last mode", {
             },
 
             'methods': {
-               'genero-remote': function(pv){
-                    return pv;
-               },
                'funcion': function(pv){
                    return daFuncion(pv.genero, pv.espectaculo);
                } 
@@ -93,6 +90,7 @@ QUnit.test("Local chaining (1 level)", function(assert){
     assert.equal($('#funcion').val(), '1', "Selecciono el genero Accion (2). La funcion seleccionada debe ser Iron Man 3 (1)");
 });
 
+
 QUnit.asyncTest("Remote chaining (1 level)", function(assert){
     
     // Selecciono Pelicula
@@ -107,6 +105,5 @@ QUnit.asyncTest("Remote chaining (1 level)", function(assert){
         // Deberia ser La familia de mi novia
         assert.equal($('#funcion').val(), '2', "Selecciono el espectaculo Pelicula (2) y el Genero Comedia (1). La funcion seleccionada debe ser 'La familia de mi novia' (2)");
         QUnit.start();
-     }, 150 );
-    
+     }, 150 );  
 });

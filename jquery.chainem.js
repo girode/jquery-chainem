@@ -97,7 +97,7 @@
         // .change
         this.element
             .on('change', function(){
-                link.executeFirstLink();
+                link.onFirstLink();
             })
             .on('chaining', function (){
                 link.onChaining();
