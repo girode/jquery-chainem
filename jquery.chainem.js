@@ -131,7 +131,7 @@
     
     SelectLink.prototype.getOptions = function(newValues){
         return $.grep(this.options, function(e){
-            return $.inArray(e.id, newValues) != -1;
+            return $.inArray(e.id, newValues) !== -1;
         });
     };
             
@@ -257,7 +257,7 @@
 
     Plugin.prototype = {
         init: function() {
-            var plug      = this
+            var plug      = this,
                 $elements = this.element,
                 link      = null,
                 linkType  = "";
