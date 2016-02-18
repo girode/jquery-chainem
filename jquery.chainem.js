@@ -15,13 +15,8 @@
                 patternize: true,                        
                 url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
-            },        
-            /*
-             * combination: Selects a combination of all combos
-             * last: Help to filter and select the last combo
-             * 
-             **/
-            selectMode: "last" 
+            },
+            selectMode: "chaining"
         };
 
 
@@ -85,6 +80,9 @@
     
     function SelectLink($element, updatingMethod){
         this.options = [];
+        /* Nota: esto se tendria que conectar con la configuracion del plugin */
+        // this.selectMode = "filtering";
+        // this.selectMode = "chaining";
         // super(), a la Java
         genericLink.call(this, $element, updatingMethod);
         this.init();
@@ -103,6 +101,7 @@
                 link.onChaining();
             });
     };
+    
     
     SelectLink.prototype.loadOptions = function (){
         var link = this;
@@ -274,10 +273,16 @@
                     
                 
                 // Agregar tipos de links aca 
+                // Algun patron vendria barbaro aca para sacar el switch
                 switch (linkType){
                     case 'select': link = new SelectLink($el, updatingMethod);
                     break;
                 }
+                    
+                if(plug.settings.selectMode == "filtering")    
+                    link.setUpdatingStrategy(new FilteringStrategy());     
+                else    
+                    link.setUpdatingStrategy(new ChainingStrategy());
                     
                 plug.chain.push(link);
             });
