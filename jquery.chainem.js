@@ -13,10 +13,11 @@
             },
             'remote-methods': {
                 patternize: true,                        
-                url: 'http://chainem.localhost/test_remote_script.php',
+                url: 'http://localhost/jquery-chainem/test_remote_script.php',
+//                url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
             },
-            selectMode: "chaining"
+            selectMode: "filtering"
         };
 
 
@@ -80,9 +81,6 @@
     
     function SelectLink($element, updatingMethod){
         this.options = [];
-        /* Nota: esto se tendria que conectar con la configuracion del plugin */
-        // this.selectMode = "filtering";
-        // this.selectMode = "chaining";
         // super(), a la Java
         genericLink.call(this, $element, updatingMethod);
         this.init();
@@ -111,7 +109,6 @@
         }); 
     };
     
-    
     SelectLink.prototype.fillSelect = function (options) {
         var select = this.element;
 
@@ -124,9 +121,8 @@
                     .val(elem.id)
                     .html(elem.val) 
                 ); 
-            });
+        });
     };        
-    
     
     SelectLink.prototype.getOptions = function(newValues){
         return $.grep(this.options, function(e){
@@ -138,8 +134,21 @@
         return this.element.val();
     };
     
-    SelectLink.prototype.updateOptions = function (newValues) {
+//    SelectLink.prototype.updateOptions = function (newValues) {
+//        this.fillSelect(this.getOptions(newValues));
+//    };
+
+    function updateOptionsForFiltering(newValues) {
         this.fillSelect(this.getOptions(newValues));
+    };
+    
+    function updateOptionsForChaining(newValues) {
+        // options = this.generateOptions(newValues);
+        var options = $.map(newValues, function(elem, key) {
+            return {id: key, val: elem}; 
+        });
+        
+        this.fillSelect(options);
     };
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
@@ -261,6 +270,12 @@
                 link      = null,
                 linkType  = "";
             
+            // Build prototype according to config
+            if(plug.settings.selectMode === "filtering")    
+                SelectLink.prototype.updateOptions = updateOptionsForFiltering;      
+            else    
+                SelectLink.prototype.updateOptions = updateOptionsForChaining;
+            
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
                 var $el              = $(elem),
@@ -270,7 +285,6 @@
                 updatingMethod.isRemote = (i === 0)? false : plug.isRemote(id);
 
                 linkType = $el.prop("tagName").toLowerCase();
-                    
                 
                 // Agregar tipos de links aca 
                 // Algun patron vendria barbaro aca para sacar el switch
@@ -278,11 +292,6 @@
                     case 'select': link = new SelectLink($el, updatingMethod);
                     break;
                 }
-                    
-                if(plug.settings.selectMode == "filtering")    
-                    link.setUpdatingStrategy(new FilteringStrategy());     
-                else    
-                    link.setUpdatingStrategy(new ChainingStrategy());
                     
                 plug.chain.push(link);
             });

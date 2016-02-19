@@ -48,7 +48,7 @@
 //                            break;
                             case '3': ret.push('3');
                         break;
-                    }
+                        }
                     } else if(espectaculo == '2'){
                         // pelicula
                         switch (genero){
@@ -66,21 +66,95 @@
                     return ret;
                 }
                 
+                function daFuncionParaChaining(genero, espectaculo){
+                
+                    var ret = {
+                        '0': 'NS', 
+                        '1': 'Iron Man 3', 
+                        '2': 'La familia de mi novia', 
+                        '3': 'Stravaganza', 
+                        '4': 'Les Luthiers' 
+                    };
+                        
+                    if(espectaculo == '0'){
+                        switch (genero){
+                            case '1': 
+                                delete ret['0'];
+                                delete ret['1'];
+                                delete ret['3'];
+                            break;
+                            case '2': 
+                                delete ret['0'];
+                                delete ret['2'];
+                                delete ret['3'];
+                                delete ret['4'];
+                            break;
+                            case '3':
+                                delete ret['0'];
+                                delete ret['1'];
+                                delete ret['2'];
+                                delete ret['4'];
+                            break;
+                        }
+                    } else if(espectaculo == '1'){
+                        // obra de teatro
+                        switch (genero){
+                            case '1': 
+                                delete ret['0'];
+                                delete ret['1'];
+                                delete ret['2'];
+                                delete ret['3'];
+                            break;
+                            case '3':
+                                delete ret['0'];
+                                delete ret['1'];
+                                delete ret['2'];
+                                delete ret['4'];
+                            break;
+                        }
+                    } else if(espectaculo == '2'){
+                        // pelicula
+                        switch (genero){
+                            case '1': 
+                                delete ret['0'];
+                                delete ret['1'];
+                                delete ret['3'];
+                                delete ret['4'];
+                            break;
+                            case '2':
+                                delete ret['0'];
+                                delete ret['2'];
+                                delete ret['3'];
+                                delete ret['4'];
+                            break;
+                        }
+                    } 
+                    
+                    return ret;
+                }
+                
+                
+                
                 
                 $('.chain').chainem({ 
                     'remote-methods': {
                         patternize: false
                     },
-                    
+                    selectMode: "chaining",
                     'methods': {
-                       // 'genero': function(pv){
-                       //      return daGenero(pv.espectaculo);
-                       // },
+                       /*  FILTERING  
+                       'genero': function(pv){
+                           return daGenero(pv.espectaculo);
+                       },
                        'funcion': function(pv){
                            return daFuncion(pv.genero, pv.espectaculo);
                        } 
+                       */ 
+                       /* CHAINING */
+                       'funcion': function(pv){
+                            return daFuncionParaChaining(pv.genero, pv.espectaculo);
+                       }
                     }
-                    
                 });
             });
         </script>
