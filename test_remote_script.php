@@ -23,6 +23,9 @@
         );
         
         switch($espectaculo){
+            case '0': 
+                $db = array();
+            break;
             case '1':
                 unset($db[0]);
                 unset($db[2]);

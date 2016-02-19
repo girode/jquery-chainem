@@ -78,6 +78,10 @@
                         
                     if(espectaculo == '0'){
                         switch (genero){
+                            case '0':
+                                alert("todo en 0!");
+                                ret = {};
+                            break;
                             case '1': 
                                 delete ret['0'];
                                 delete ret['1'];
@@ -99,6 +103,10 @@
                     } else if(espectaculo == '1'){
                         // obra de teatro
                         switch (genero){
+                            case '0':
+                                alert("todo en 0!");
+                                ret = {};
+                            break;
                             case '1': 
                                 delete ret['0'];
                                 delete ret['1'];
@@ -152,6 +160,7 @@
                        */ 
                        /* CHAINING */
                        'funcion': function(pv){
+                            console.log(pv);
                             return daFuncionParaChaining(pv.genero, pv.espectaculo);
                        }
                     }
@@ -170,19 +179,19 @@
             
             <label for="genero"><strong>Genero</strong></label>
             <select name="B" id="genero" class="chain">
-                <option value="0">NS</option>
+<!--                <option value="0">NS</option>
                 <option value="1">Comedia</option>
                 <option value="2">Accion</option>
-                <option value="3">Extravagante</option>
+                <option value="3">Extravagante</option>-->
             </select>
             
             <label for="funcion"><strong>Función</strong></label>
             <select name="C" id="funcion" class="chain">
-                <option value="0">NS</option>
+<!--                <option value="0">NS</option>
                 <option value="1">Iron Man 3</option>
                 <option value="2">La familia de mi novia</option>
                 <option value="3">Stravaganza</option>
-                <option value="4">Les Luthiers</option>
+                <option value="4">Les Luthiers</option>-->
             </select>
             
         </form>
