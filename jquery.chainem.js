@@ -17,7 +17,12 @@
 //                url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
             },
-            selectMode: "filtering"
+            'link-config': {
+                select: {
+                    selectMode: "filtering",
+                    oneStep: true
+                }
+            }
         };
 
 
@@ -79,8 +84,10 @@
     SelectLink.prototype = Object.create(genericLink.prototype);
     SelectLink.prototype.constructor = SelectLink;
     
-    function SelectLink($element, updatingMethod){
+    function SelectLink($element, updatingMethod, settings){
         this.options = [];
+        this.settings = settings || {};
+        
         // super(), a la Java
         genericLink.call(this, $element, updatingMethod);
         this.init();
@@ -132,14 +139,6 @@
         this.fillSelect(this.getOptions(newValues));
     };
 
-    /*
-    SelectLink.prototype.getOptions = function(newValues){
-        return $.grep(this.options, function(e){
-            return $.inArray(e.id, newValues) !== -1;
-        });
-    };
-    */
-   
     function getOptionsForFiltering(newValues) {
         return $.grep(this.options, function(e){
             return $.inArray(e.id, newValues) !== -1;
@@ -155,6 +154,10 @@
     // Tengo que tocar esta si pretendo hacer que los combos 
     // se carguen de a uno
     
+    SelectLink.prototype.preventNextStep = function () {
+        return !this.settings['oneStep'];
+    };
+    
     SelectLink.prototype.executeBeforeGoingToNext = function(){
         var previousValues = this.chain.getSelectedValues(),
                   isRemote = this.updatingMethod.isRemote;
@@ -164,7 +167,10 @@
         if(!isRemote)
             this.updateOptions(newValues);            
         
-        return !isRemote;
+        // return !isRemote;
+        // return this.preventNextStep();
+        
+        return false;
     };
     
     /* Checkbox Link
@@ -268,6 +274,28 @@
     }
 
     Plugin.prototype = {
+        
+        linkTypes: {
+            'select': SelectLink
+        },
+        
+        registerLinkType: function(linkType, contructorName){
+            // Requires to check if this already exists
+            this.linkTypes[linkType] = contructorName;
+        },
+        
+        createLink: function(linkType, $el, updatingMethod) {
+            return new this.linkTypes[linkType](
+                    $el,
+                    updatingMethod,
+                    this.settings['link-config'][linkType]
+            );
+        },
+        
+        configLink: function () {
+            
+        },
+        
         init: function() {
             var plug      = this,
                 $elements = this.element,
@@ -275,7 +303,7 @@
                 linkType  = "";
             
             // Build prototype according to config
-            if(plug.settings.selectMode === "filtering")    
+            if(plug.settings['link-config']['select']['selectMode'] === "filtering")    
                 SelectLink.prototype.getOptions = getOptionsForFiltering;      
             else    
                 SelectLink.prototype.getOptions = getOptionsForChaining;
@@ -287,16 +315,17 @@
                     updatingMethod   = (i === 0)? function(){ return []; } : plug.getSourceMethod(id);
 
                 updatingMethod.isRemote = (i === 0)? false : plug.isRemote(id);
-
+                
                 linkType = $el.prop("tagName").toLowerCase();
                 
-                // Agregar tipos de links aca 
-                // Algun patron vendria barbaro aca para sacar el switch
+                /*
                 switch (linkType){
                     case 'select': link = new SelectLink($el, updatingMethod);
                     break;
-                }
-                    
+                }*/
+                
+                link = plug.createLink(linkType, $el, updatingMethod);
+                
                 plug.chain.push(link);
             });
             
