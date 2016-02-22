@@ -77,9 +77,12 @@
                     };
                         
                     if(espectaculo == '0'){
+                        
                         switch (genero){
-                            case '0':
-                                alert("todo en 0!");
+                            // Null es el caso en que el combo de genero 
+                            // queda vacio porque los combos anteriores 
+                            // quedan vacios
+                            case null:
                                 ret = {};
                             break;
                             case '1': 
@@ -160,7 +163,6 @@
                        */ 
                        /* CHAINING */
                        'funcion': function(pv){
-                            console.log(pv);
                             return daFuncionParaChaining(pv.genero, pv.espectaculo);
                        }
                     }

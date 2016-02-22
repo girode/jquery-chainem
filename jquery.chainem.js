@@ -124,32 +124,36 @@
         });
     };        
     
+    SelectLink.prototype.getSelectedValue = function () {
+        return this.element.val();
+    };
+    
+    SelectLink.prototype.updateOptions = function (newValues) {
+        this.fillSelect(this.getOptions(newValues));
+    };
+
+    /*
     SelectLink.prototype.getOptions = function(newValues){
         return $.grep(this.options, function(e){
             return $.inArray(e.id, newValues) !== -1;
         });
     };
-            
-    SelectLink.prototype.getSelectedValue = function () {
-        return this.element.val();
+    */
+   
+    function getOptionsForFiltering(newValues) {
+        return $.grep(this.options, function(e){
+            return $.inArray(e.id, newValues) !== -1;
+        });
     };
     
-//    SelectLink.prototype.updateOptions = function (newValues) {
-//        this.fillSelect(this.getOptions(newValues));
-//    };
-
-    function updateOptionsForFiltering(newValues) {
-        this.fillSelect(this.getOptions(newValues));
-    };
-    
-    function updateOptionsForChaining(newValues) {
-        // options = this.generateOptions(newValues);
-        var options = $.map(newValues, function(elem, key) {
+    function getOptionsForChaining(newValues) {
+        return $.map(newValues, function(elem, key) {
             return {id: key, val: elem}; 
         });
-        
-        this.fillSelect(options);
     };
+    
+    // Tengo que tocar esta si pretendo hacer que los combos 
+    // se carguen de a uno
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
         var previousValues = this.chain.getSelectedValues(),
@@ -272,9 +276,9 @@
             
             // Build prototype according to config
             if(plug.settings.selectMode === "filtering")    
-                SelectLink.prototype.updateOptions = updateOptionsForFiltering;      
+                SelectLink.prototype.getOptions = getOptionsForFiltering;      
             else    
-                SelectLink.prototype.updateOptions = updateOptionsForChaining;
+                SelectLink.prototype.getOptions = getOptionsForChaining;
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
