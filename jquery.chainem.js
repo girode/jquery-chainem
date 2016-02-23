@@ -19,7 +19,7 @@
             },
             'link-config': {
                 select: {
-                    selectMode: "filtering",
+                    selectMode: "chaining",
                     oneStep: true
                 }
             }
@@ -68,13 +68,15 @@
         
         executeIfNotGoingToNext: function(){},
         
+        shouldPreventNextStep: function(){},
+        
         // Determina como me muevo al siguiente eslabon
         onChaining: function(){
             if(this.executeBeforeGoingToNext()) this.moveToNext();
         },
         
-        toString: function(next){
-            return 'link[' + this.id + ']' + (next)? this.next: '';
+        toString: function(){
+            return 'link[' + this.id + ']';
         }
         
     };
@@ -106,7 +108,6 @@
                 link.onChaining();
             });
     };
-    
     
     SelectLink.prototype.loadOptions = function (){
         var link = this;
@@ -151,11 +152,11 @@
         });
     };
     
-    // Tengo que tocar esta si pretendo hacer que los combos 
-    // se carguen de a uno
+    SelectLink.prototype.shouldPreventNextStep = function () {
+        var isRemote  = this.updatingMethod.isRemote,
+            isOneStep = this.settings['oneStep'];
     
-    SelectLink.prototype.preventNextStep = function () {
-        return !this.settings['oneStep'];
+        return !isRemote && !isOneStep;
     };
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
@@ -167,10 +168,7 @@
         if(!isRemote)
             this.updateOptions(newValues);            
         
-        // return !isRemote;
-        // return this.preventNextStep();
-        
-        return false;
+        return this.shouldPreventNextStep();
     };
     
     /* Checkbox Link
@@ -251,7 +249,7 @@
         toString: function(){
             var i = 0, ret = '';
             while(this[i]){
-                ret += this[i].toString() + ((this[i].next)? '->': '');
+                ret += this[i].toString(false) + ((this[i].next)? '->': '');
                 i++;
             }
             return ret;
@@ -363,7 +361,8 @@
                 
                 request.done(function( newValues ) {
                     link.updateOptions(newValues);
-                    link.moveToNext();
+                    if(link.shouldPreventNextStep())
+                        link.moveToNext();
                 });
                 
                 request.fail(function(jqXHR, textStatus ) {
