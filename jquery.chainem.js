@@ -72,7 +72,11 @@
         
         // Determina como me muevo al siguiente eslabon
         onChaining: function(){
-            if(this.executeBeforeGoingToNext()) this.moveToNext();
+            if(this.executeBeforeGoingToNext()) {
+                this.moveToNext();
+            } else {
+                this.executeIfNotGoingToNext();
+            }
         },
         
         toString: function(){
@@ -106,8 +110,29 @@
             })
             .on('chaining', function (){
                 link.onChaining();
+            })
+            .on('chainem.clear', function(){
+               link.onClear();
             });
     };
+    
+    SelectLink.prototype.chainClear = function (){
+        var next = this.next;
+        
+        if(next) {
+           next.element.trigger('chainem.clear');
+        }
+    };
+    
+    SelectLink.prototype.clearSelect = function (){
+        this.element.empty();
+    };
+    
+    SelectLink.prototype.onClear = function (){
+        this.clearSelect();
+        this.chainClear();
+    };
+    
     
     SelectLink.prototype.loadOptions = function (){
         var link = this;
@@ -170,6 +195,12 @@
         
         return this.shouldPreventNextStep();
     };
+    
+    SelectLink.prototype.executeIfNotGoingToNext = function(){
+        var next = this.next;
+        if(next) next.element.trigger('chainem.clear');
+    };
+    
     
     /* Checkbox Link
     
@@ -363,6 +394,8 @@
                     link.updateOptions(newValues);
                     if(link.shouldPreventNextStep())
                         link.moveToNext();
+                    else 
+                        link.executeIfNotGoingToNext();
                 });
                 
                 request.fail(function(jqXHR, textStatus ) {
