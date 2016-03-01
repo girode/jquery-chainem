@@ -99,6 +99,7 @@
         this.init();
     }   
     
+    /* Add/Override methods to SelectLink prototype (which is genericLink) */
     SelectLink.prototype.init = function(){
         this.loadOptions();
         
@@ -133,7 +134,6 @@
         this.chainClear();
     };
     
-    
     SelectLink.prototype.loadOptions = function (){
         var link = this;
         
@@ -160,7 +160,7 @@
     SelectLink.prototype.getSelectedValue = function () {
         return this.element.val();
     };
-    
+     
     SelectLink.prototype.updateOptions = function (newValues) {
         this.fillSelect(this.getOptions(newValues));
     };
@@ -177,12 +177,26 @@
         });
     };
     
+    /*
     SelectLink.prototype.shouldPreventNextStep = function () {
         var isRemote  = this.updatingMethod.isRemote,
             isOneStep = this.settings['oneStep'];
     
         return !isRemote && !isOneStep;
     };
+    */
+   
+    function shouldPreventNextStepForFiltering() {
+        var isRemote  = this.updatingMethod.isRemote;
+        return !isRemote;
+    }
+    
+    function shouldPreventNextStepForChaining() {
+        var isRemote  = this.updatingMethod.isRemote,
+             isOneStep = this.settings['oneStep'];
+
+         return !isRemote && !isOneStep;
+    }
     
     SelectLink.prototype.executeBeforeGoingToNext = function(){
         var previousValues = this.chain.getSelectedValues(),
@@ -201,40 +215,15 @@
         if(next) next.element.trigger('chainem.clear');
     };
     
-    
-    /* Checkbox Link
-    
-    function CheckboxLink($element, method, shouldWait){
-        
-        // super(), a la Java
-        genericLink.call(this, $element, method, shouldWait);
-        
-        // select specific options
-        this.options = [];
-        this.init();
-    }   
-    
-    // Siguientes dos lineas: Hago que SelectLink herede de genericLink
-    CheckboxLink.prototype = Object.create(genericLink.prototype);
-    CheckboxLink.prototype.constructor = CheckboxLink;
-    
-    CheckboxLink.prototype.init = function(){
-        var link = this;
-
-        this.element.find('option').each(function(i, e){
-           link.options.push({id: $(e).val(), val: $(e).html()});
-        });            
-        
-        this.element
-            .on('change', function(){
-                link.executeFirstLink();
-            })
-            .on('chaining', function (){
-                link.onChaining();
-            });
+    SelectLink.configure = function (settings) {
+        if(settings['selectMode'] === "filtering"){
+            SelectLink.prototype.getOptions = getOptionsForFiltering;      
+            SelectLink.prototype.shouldPreventNextStep = shouldPreventNextStepForFiltering;
+        } else {
+            SelectLink.prototype.getOptions = getOptionsForChaining;
+            SelectLink.prototype.shouldPreventNextStep = shouldPreventNextStepForChaining;
+        }
     };
-    */
-    
     
     /* Chain model */ 
     
@@ -321,8 +310,13 @@
             );
         },
         
-        configLink: function () {
+        configLinks: function () {
+            var plug = this;
             
+            $.each(plug.settings['link-config'], function(linkType, linkTypeConf){
+                var constructorName  = plug.linkTypes[linkType];
+                constructorName.configure(linkTypeConf);
+            });
         },
         
         init: function() {
@@ -332,10 +326,7 @@
                 linkType  = "";
             
             // Build prototype according to config
-            if(plug.settings['link-config']['select']['selectMode'] === "filtering")    
-                SelectLink.prototype.getOptions = getOptionsForFiltering;      
-            else    
-                SelectLink.prototype.getOptions = getOptionsForChaining;
+            this.configLinks();
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
@@ -346,12 +337,6 @@
                 updatingMethod.isRemote = (i === 0)? false : plug.isRemote(id);
                 
                 linkType = $el.prop("tagName").toLowerCase();
-                
-                /*
-                switch (linkType){
-                    case 'select': link = new SelectLink($el, updatingMethod);
-                    break;
-                }*/
                 
                 link = plug.createLink(linkType, $el, updatingMethod);
                 
