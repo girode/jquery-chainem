@@ -151,20 +151,26 @@
                     'remote-methods': {
                         patternize: false
                     },
-                    selectMode: "chaining",
+                    'link-config': {
+                        select: {
+                            selectMode: "filtering"
+//                            oneStep: true
+                        }
+                    },
                     'methods': {
-                       /*  FILTERING  
+                       /*  FILTERING  */
                        'genero': function(pv){
                            return daGenero(pv.espectaculo);
                        },
                        'funcion': function(pv){
                            return daFuncion(pv.genero, pv.espectaculo);
                        } 
-                       */ 
-                       /* CHAINING */
+                        
+                       /* CHAINING 
                        'funcion': function(pv){
                             return daFuncionParaChaining(pv.genero, pv.espectaculo);
                        }
+                       */
                     }
                 });
             });
@@ -181,19 +187,19 @@
             
             <label for="genero"><strong>Genero</strong></label>
             <select name="B" id="genero" class="chain">
-<!--                <option value="0">NS</option>
+                <option value="0">NS</option>
                 <option value="1">Comedia</option>
                 <option value="2">Accion</option>
-                <option value="3">Extravagante</option>-->
+                <option value="3">Extravagante</option>
             </select>
             
             <label for="funcion"><strong>Función</strong></label>
             <select name="C" id="funcion" class="chain">
-<!--                <option value="0">NS</option>
+                <option value="0">NS</option>
                 <option value="1">Iron Man 3</option>
                 <option value="2">La familia de mi novia</option>
                 <option value="3">Stravaganza</option>
-                <option value="4">Les Luthiers</option>-->
+                <option value="4">Les Luthiers</option>
             </select>
             
         </form>

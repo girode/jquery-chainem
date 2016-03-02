@@ -19,7 +19,7 @@
             },
             'link-config': {
                 select: {
-                    selectMode: "chaining",
+                    selectMode: "filtering",
                     oneStep: true
                 }
             }
