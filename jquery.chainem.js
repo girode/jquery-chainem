@@ -346,21 +346,29 @@
         },
         
         getSourceMethod: function(id){
-            var method = this.settings.methods[id];
+            var returnMethod = null;
             
-            if(!method){
-                method = this.assembleRemoteMethod(id);
-                if(!method)
-                    throw this.pluginName + ': Method for link not found';
-            } 
+            // is methods defined?
+            if(this.settings.methods){
+                var method = this.settings.methods[id];
+            
+                if(!method){
+                    method = this.assembleRemoteMethod(id);
+                    if(!method)
+                        throw this.pluginName + ': Method for link not found';
+                } 
 
+                returnMethod = method;
+            } else {
+                returnMethod = this.assembleRemoteMethod(id);
+            }
             
-            return method;
+            return returnMethod;
         },
         
         isRemote: function(id){
             // Remote == not local method
-            return !this.settings.methods[id];
+            return this.settings.methods && !this.settings.methods[id];
         },
         
         assembleRemoteMethod: function(id){
@@ -393,16 +401,23 @@
             };
         },
                 
+        toCamelCase: function(str){
+            return str.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+        },        
+                
         setupAjax: function(previousValues, id){
             var url = '',
                 remoteSettings = this.settings['remote-methods'];         
                     
             url += remoteSettings['url'];
+            /*
             url += (remoteSettings['patternize'])? 
                         '/' + remoteSettings['pattern'] + id.charAt(0).toUpperCase() + id.slice(1) 
                         : 
                         '';
-    
+            */
+            url += '/' + remoteSettings['pattern'] + toCamelCase(id);
+                    
             return {
                 url: url,
                 async: remoteSettings['asyncronic'],
