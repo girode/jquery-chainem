@@ -11,8 +11,9 @@
             remoteErrorHandler: function(errMsg){
                 console.log("External Request failed: " + errMsg);
             },
+            methods: {},
             'remote-methods': {
-                patternize: true,                        
+                buildPattern: true,                        
                 url: 'http://localhost/jquery-chainem/test_remote_script.php',
 //                url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
@@ -72,7 +73,10 @@
         
         // Determina como me muevo al siguiente eslabon
         onChaining: function(){
-            if(this.executeBeforeGoingToNext()) {
+            var shouldIMove = this.executeBeforeGoingToNext();
+            // console.log(shouldIMove);
+            
+            if(shouldIMove) {
                 this.moveToNext();
             } else {
                 this.executeIfNotGoingToNext();
@@ -177,15 +181,6 @@
         });
     };
     
-    /*
-    SelectLink.prototype.shouldPreventNextStep = function () {
-        var isRemote  = this.updatingMethod.isRemote,
-            isOneStep = this.settings['oneStep'];
-    
-        return !isRemote && !isOneStep;
-    };
-    */
-   
     function shouldPreventNextStepForFiltering() {
         var isRemote  = this.updatingMethod.isRemote;
         return !isRemote;
@@ -346,29 +341,20 @@
         },
         
         getSourceMethod: function(id){
-            var returnMethod = null;
+            var method = this.settings.methods[id];
             
-            // is methods defined?
-            if(this.settings.methods){
-                var method = this.settings.methods[id];
-            
-                if(!method){
-                    method = this.assembleRemoteMethod(id);
-                    if(!method)
-                        throw this.pluginName + ': Method for link not found';
-                } 
+            if(!method){
+                method = this.assembleRemoteMethod(id);
+                if(!method)
+                    throw this.pluginName + ': Method for link not found';
+            } 
 
-                returnMethod = method;
-            } else {
-                returnMethod = this.assembleRemoteMethod(id);
-            }
-            
-            return returnMethod;
+            return method;
         },
         
         isRemote: function(id){
             // Remote == not local method
-            return this.settings.methods && !this.settings.methods[id];
+            return !this.settings.methods[id];
         },
         
         assembleRemoteMethod: function(id){
@@ -385,7 +371,10 @@
                 
                 request.done(function( newValues ) {
                     link.updateOptions(newValues);
-                    if(link.shouldPreventNextStep())
+                    
+                    // Ojo con esta condicion, puede que tenga logica distinta
+                    // para los dos modos de funcionamiento
+                    if(!link.shouldPreventNextStep())
                         link.moveToNext();
                     else 
                         link.executeIfNotGoingToNext();
@@ -402,27 +391,24 @@
         },
                 
         toCamelCase: function(str){
-            return str.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); });
+            return str.replace(/(?:_|-)([a-z])/g, function (g) { return g[1].toUpperCase(); });
         },        
                 
         setupAjax: function(previousValues, id){
-            var url = '',
-                remoteSettings = this.settings['remote-methods'];         
-                    
-            url += remoteSettings['url'];
-            /*
-            url += (remoteSettings['patternize'])? 
-                        '/' + remoteSettings['pattern'] + id.charAt(0).toUpperCase() + id.slice(1) 
-                        : 
-                        '';
-            */
-            url += '/' + remoteSettings['pattern'] + toCamelCase(id);
+            var url            = '',
+                remoteSettings = this.settings['remote-methods'],
+                camelCasedId   = id.charAt(0).toUpperCase() + this.toCamelCase(id.slice(1));
+            
+            
+            url += remoteSettings['url'] + '/';
+            url += (remoteSettings['buildPattern'])?  remoteSettings['pattern']: '';
+            url += camelCasedId;
                     
             return {
                 url: url,
                 async: remoteSettings['asyncronic'],
                 type: "POST",
-                data:  (remoteSettings['patternize'])? previousValues: {'previousValues': previousValues, 'get': id},
+                data:  (remoteSettings['buildPattern'])? previousValues: {'previousValues': previousValues, 'get': id},
                 dataType: "json"
             };
         }
