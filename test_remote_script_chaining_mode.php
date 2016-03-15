@@ -1,21 +1,5 @@
 <?php
 
-    $testing_mode = "chaining";
-
-    function daGeneroFiltering($espectaculo){
-        $ret = array();
-        switch($espectaculo){
-            case '0':  array_push($ret, '0', '1', '2', '3');
-            break;
-            case '1':  array_push($ret, '1', '3');
-            break;
-            case '2':  array_push($ret, '1', '2');
-            break;
-        }
-
-        return $ret;
-    }
-    
     function daGeneroChaining($espectaculo){
         $db = array(
             0 => 'NS',
@@ -43,11 +27,7 @@
     
     $espectaculo = $_POST['previousValues']['espectaculo'];
     
-    if($testing_mode == "chaining") {
-        $genero = daGeneroChaining($espectaculo);
-    } else {
-        $genero = daGeneroFiltering($espectaculo);
-    }
+    $genero = daGeneroChaining($espectaculo);
     
     echo json_encode($genero);
     
