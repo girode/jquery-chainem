@@ -4,157 +4,15 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script type="text/javascript" src="js/jquery.min.js"></script>
         <script type="text/javascript" src="jquery.chainem.js"></script>
+        <script type="text/javascript" src="local_filtering_test.js"></script>
+        <script type="text/javascript" src="local_chaining_test.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
                 
-                // Devuelve genero en funcion del espectaculo
-                function daGenero(espectaculo){
-                    var ret = [];
-                    switch(espectaculo){
-                        case '0': ret.push('0', '1', '2', '3');
-                        break;
-                        case '1': ret.push('1', '3');
-                        break;
-                        case '2': ret.push('1', '2');
-                        break;
-                    }
-                    
-                    return ret;
-                }
-                
-                // devuelve funcion en funcion del genero y el espectacilo
-                function daFuncion(genero, espectaculo){
-                    var ret = [];
-                        
-                    if(espectaculo == '0'){
-                        switch (genero){
-                            case '0': ret.push('0', '1', '2', '3', '4');
-                            break;
-                            case '1': ret.push('2', '4');
-                            break;
-                            case '2': ret.push('1');
-                            break;
-                            case '3': ret.push('3');
-                            break;
-                        }
-                    } else if(espectaculo == '1'){
-                        // obra de teatro
-                        switch (genero){
-//                            case '0': ret.push('0', '1', '2', '3', '4');
-//                            break;
-                            case '1': ret.push('4');
-                            break;
-//                            case '2': ret.push('1');
-//                            break;
-                            case '3': ret.push('3');
-                        break;
-                        }
-                    } else if(espectaculo == '2'){
-                        // pelicula
-                        switch (genero){
-//                            case '0': ret.push('0', '1', '2', '3', '4');
-//                            break;
-                            case '1': ret.push('2');
-                            break;
-                            case '2': ret.push('1');
-                            break;
-//                            case '3': ret.push('3');
-//                            break;
-                        }
-                    } 
-                    
-                    return ret;
-                }
-                
-                function daFuncionParaChaining(genero, espectaculo){
-                
-                    var ret = {
-                        '0': 'NS', 
-                        '1': 'Iron Man 3', 
-                        '2': 'La familia de mi novia', 
-                        '3': 'Stravaganza', 
-                        '4': 'Les Luthiers' 
-                    };
-                        
-                    if(espectaculo == '0'){
-                        
-                        switch (genero){
-                            // Null es el caso en que el combo de genero 
-                            // queda vacio porque los combos anteriores 
-                            // quedan vacios
-                            case null:
-                                ret = {};
-                            break;
-                            case '1': 
-                                delete ret['0'];
-                                delete ret['1'];
-                                delete ret['3'];
-                            break;
-                            case '2': 
-                                delete ret['0'];
-                                delete ret['2'];
-                                delete ret['3'];
-                                delete ret['4'];
-                            break;
-                            case '3':
-                                delete ret['0'];
-                                delete ret['1'];
-                                delete ret['2'];
-                                delete ret['4'];
-                            break;
-                        }
-                    } else if(espectaculo == '1'){
-                        // obra de teatro
-                        switch (genero){
-                            case '0':
-                                alert("todo en 0!");
-                                ret = {};
-                            break;
-                            case '1': 
-                                delete ret['0'];
-                                delete ret['1'];
-                                delete ret['2'];
-                                delete ret['3'];
-                            break;
-                            case '3':
-                                delete ret['0'];
-                                delete ret['1'];
-                                delete ret['2'];
-                                delete ret['4'];
-                            break;
-                        }
-                    } else if(espectaculo == '2'){
-                        // pelicula
-                        switch (genero){
-                            case '1': 
-                                delete ret['0'];
-                                delete ret['1'];
-                                delete ret['3'];
-                                delete ret['4'];
-                            break;
-                            case '2':
-                                delete ret['0'];
-                                delete ret['2'];
-                                delete ret['3'];
-                                delete ret['4'];
-                            break;
-                        }
-                    } 
-                    
-                    return ret;
-                }
-                
-                
-                
-                
-                $('.chain').chainem({ 
-                    'remote-methods': {
-                        patternize: false
-                    },
+                $('.chain-filtering').chainem({
                     'link-config': {
                         select: {
                             selectMode: "filtering"
-//                            oneStep: true
                         }
                     },
                     'methods': {
@@ -165,43 +23,187 @@
                        'funcion': function(pv){
                            return daFuncion(pv.genero, pv.espectaculo);
                        } 
-                        
-                       /* CHAINING 
+                    }
+                });
+
+                // "filtering is default mode"
+                $('.chain-filtering-remoto').chainem({ 
+                    'remote-methods': {
+                        url: 'http://chainem.localhost/test_remote_script_filtering_mode.php',
+                        buildPattern: false,
+                    }
+                });
+
+
+                $('.chain-chaining').chainem({ 
+                    'remote-methods': {
+                        // url: 'http://localhost/jquery-chainem/test_remote_script_chaining_mode.php',
+                        url: 'http://chainem.localhost/test_remote_script_chaining_mode.php',
+                        buildPattern: false,
+                    },
+                    'link-config': {
+                        select: {
+                            selectMode: "chaining"
+//                            oneStep: true
+                        }
+                    },
+                    'methods': {
+                       /* CHAINING */ 
                        'funcion': function(pv){
                             return daFuncionParaChaining(pv.genero, pv.espectaculo);
                        }
-                       */
                     }
                 });
+
+
+
             });
         </script>
     </head>
     <body>
         <form>
-            <label for="espectaculo"><strong>Espectaculo</strong></label>
-            <select name="A" id="espectaculo" class="chain">
-                <option value="0">NS</option>
-                <option value="1">Obra de Teatro</option>
-                <option value="2">Pelicula</option>
-            </select>
-            
-            <label for="genero"><strong>Genero</strong></label>
-            <select name="B" id="genero" class="chain">
-                <option value="0">NS</option>
-                <option value="1">Comedia</option>
-                <option value="2">Accion</option>
-                <option value="3">Extravagante</option>
-            </select>
-            
-            <label for="funcion"><strong>Función</strong></label>
-            <select name="C" id="funcion" class="chain">
-                <option value="0">NS</option>
-                <option value="1">Iron Man 3</option>
-                <option value="2">La familia de mi novia</option>
-                <option value="3">Stravaganza</option>
-                <option value="4">Les Luthiers</option>
-            </select>
-            
+            <fieldset>
+                <legend>Filtering - Local</legend>
+
+                <label for="espectaculo"><strong>Espectaculo</strong></label>
+                <select name="A" id="espectaculo" class="chain-filtering">
+                    <option value="0">NS</option>
+                    <option value="1">Obra de Teatro</option>
+                    <option value="2">Pelicula</option>
+                </select>
+                
+                <label for="genero"><strong>Genero</strong></label>
+                <select name="B" id="genero" class="chain-filtering">
+                    <option value="0">NS</option>
+                    <option value="1">Comedia</option>
+                    <option value="2">Accion</option>
+                    <option value="3">Extravagante</option>
+                </select>
+                
+                <label for="funcion"><strong>Función</strong></label>
+                <select name="C" id="funcion" class="chain-filtering">
+                    <option value="0">NS</option>
+                    <option value="1">Iron Man 3</option>
+                    <option value="2">La familia de mi novia</option>
+                    <option value="3">Stravaganza</option>
+                    <option value="4">Les Luthiers</option>
+                </select>
+            </fieldset>
+
+            <fieldset>
+                <legend>Filtering - Remoto</legend>
+
+                <label for="dia"><strong>Dia</strong></label>
+                <select name="A" id="dia" class="chain-filtering-remoto">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                    <option value="21">21</option>
+                    <option value="22">22</option>
+                    <option value="23">23</option>
+                    <option value="24">24</option>
+                    <option value="25">25</option>
+                    <option value="26">26</option>
+                    <option value="27">27</option>
+                    <option value="28">28</option>
+                    <option value="29">29</option>
+                    <option value="30">30</option>
+                    <option value="31">31</option>
+                </select>
+                
+                <label for="mes"><strong>Mes</strong></label>
+                <select name="B" id="mes" class="chain-filtering-remoto">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+                
+                <label for="anio"><strong>Año</strong></label>
+                <select name="C" id="anio" class="chain-filtering-remoto">
+                    <option value="1990">1990</option>
+                    <option value="1991">1991</option>
+                    <option value="1992">1992</option>
+                    <option value="1993">1993</option>
+                    <option value="1994">1994</option>
+                    <option value="1995">1995</option>
+                    <option value="1996">1996</option>
+                    <option value="1997">1997</option>
+                    <option value="1998">1998</option>
+                    <option value="1999">1999</option>
+                    <option value="2000">2000</option>
+                    <option value="2001">2001</option>
+                    <option value="2002">2002</option>
+                    <option value="2003">2003</option>
+                    <option value="2004">2004</option>
+                    <option value="2005">2005</option>
+                    <option value="2006">2006</option>
+                    <option value="2007">2007</option>
+                    <option value="2008">2008</option>
+                    <option value="2009">2009</option>
+                    <option value="2010">2010</option>
+                    <option value="2011">2011</option>
+                    <option value="2012">2012</option>
+                    <option value="2013">2013</option>
+                    <option value="2014">2014</option>
+                    <option value="2015">2015</option>
+                </select>
+            </fieldset>
+
+            <fieldset>
+                <legend>Chaining - Local and Remote</legend>
+
+                <label for="espectaculo"><strong>Espectaculo</strong></label>
+                <select name="A" id="espectaculo" class="chain-chaining">
+                    <option value="0">NS</option>
+                    <option value="1">Obra de Teatro</option>
+                    <option value="2">Pelicula</option>
+                </select>
+                
+                <label for="genero"><strong>Genero</strong></label>
+                <select name="B" id="genero" class="chain-chaining">
+                    <option value="0">NS</option>
+                    <option value="1">Comedia</option>
+                    <option value="2">Accion</option>
+                    <option value="3">Extravagante</option>
+                </select>
+                
+                <label for="funcion"><strong>Función</strong></label>
+                <select name="C" id="funcion" class="chain-chaining">
+                    <option value="0">NS</option>
+                    <option value="1">Iron Man 3</option>
+                    <option value="2">La familia de mi novia</option>
+                    <option value="3">Stravaganza</option>
+                    <option value="4">Les Luthiers</option>
+                </select>
+            </fieldset>
+
+
         </form>
     </body>
     

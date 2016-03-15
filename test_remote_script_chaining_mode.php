@@ -25,9 +25,15 @@
         return $db;
     }
     
-    $espectaculo = $_POST['previousValues']['espectaculo'];
-    
-    $genero = daGeneroChaining($espectaculo);
+
+    if(isset($_POST['previousValues'])){
+    	// $param = $_POST['get']; -> Me dice a que funcion llamar
+    	$value = $_POST['previousValues']['espectaculo'];
+    } else {
+    	$value = $_POST['espectaculo'];
+    }
+
+    $genero = daGeneroChaining($value);
     
     echo json_encode($genero);
     

@@ -14,8 +14,7 @@
             methods: {},
             'remote-methods': {
                 buildPattern: true,                        
-                url: 'http://localhost/jquery-chainem/test_remote_script.php',
-//                url: 'http://chainem.localhost/test_remote_script.php',
+                url: 'http://chainem.localhost/test_remote_script.php',
                 pattern: 'get'
             },
             'link-config': {
@@ -97,7 +96,16 @@
     function SelectLink($element, updatingMethod, settings){
         this.options = [];
         this.settings = settings || {};
-        
+
+		// Configurable        
+        if(this.settings['selectMode'] === "filtering"){
+            this.getOptions = getOptionsForFiltering;      
+            this.shouldPreventNextStep = shouldPreventNextStepForFiltering;
+        } else {
+            this.getOptions = getOptionsForChaining;
+            this.shouldPreventNextStep = shouldPreventNextStepForChaining;
+        }
+
         // super(), a la Java
         genericLink.call(this, $element, updatingMethod);
         this.init();
@@ -106,7 +114,7 @@
     /* Add/Override methods to SelectLink prototype (which is genericLink) */
     SelectLink.prototype.init = function(){
         this.loadOptions();
-        
+
         var link = this;
         // .change
         this.element
@@ -170,13 +178,13 @@
     };
 
     function getOptionsForFiltering(newValues) {
-        return $.grep(this.options, function(e){
+    	return $.grep(this.options, function(e){
             return $.inArray(e.id, newValues) !== -1;
         });
     };
     
     function getOptionsForChaining(newValues) {
-        return $.map(newValues, function(elem, key) {
+    	return $.map(newValues, function(elem, key) {
             return {id: key, val: elem}; 
         });
     };
@@ -210,16 +218,22 @@
         if(next) next.element.trigger('chainem.clear');
     };
     
+    // encontre el bug 
+    // basicamente el prototipo se comparte entre instancias
+    // lo que no quiero en este caso
+    /*
     SelectLink.configure = function (settings) {
+
         if(settings['selectMode'] === "filtering"){
-            SelectLink.prototype.getOptions = getOptionsForFiltering;      
-            SelectLink.prototype.shouldPreventNextStep = shouldPreventNextStepForFiltering;
+            this.getOptions = getOptionsForFiltering;      
+            this.shouldPreventNextStep = shouldPreventNextStepForFiltering;
         } else {
-            SelectLink.prototype.getOptions = getOptionsForChaining;
-            SelectLink.prototype.shouldPreventNextStep = shouldPreventNextStepForChaining;
+            this.getOptions = getOptionsForChaining;
+            this.shouldPreventNextStep = shouldPreventNextStepForChaining;
         }
     };
-    
+    */
+
     /* Chain model */ 
     
     function Chain() {
@@ -305,15 +319,7 @@
             );
         },
         
-        configLinks: function () {
-            var plug = this;
-            
-            $.each(plug.settings['link-config'], function(linkType, linkTypeConf){
-                var constructorName  = plug.linkTypes[linkType];
-                constructorName.configure(linkTypeConf);
-            });
-        },
-        
+
         init: function() {
             var plug      = this,
                 $elements = this.element,
@@ -321,7 +327,7 @@
                 linkType  = "";
             
             // Build prototype according to config
-            this.configLinks();
+            // this.configLinks();
             
             // Traversing the chain of elements
             $elements.each(function(i, elem){            
@@ -330,11 +336,11 @@
                     updatingMethod   = (i === 0)? function(){ return []; } : plug.getSourceMethod(id);
 
                 updatingMethod.isRemote = (i === 0)? false : plug.isRemote(id);
-                
+
                 linkType = $el.prop("tagName").toLowerCase();
                 
                 link = plug.createLink(linkType, $el, updatingMethod);
-                
+            	
                 plug.chain.push(link);
             });
             
@@ -399,16 +405,28 @@
                 remoteSettings = this.settings['remote-methods'],
                 camelCasedId   = id.charAt(0).toUpperCase() + this.toCamelCase(id.slice(1));
             
-            
+            /*
             url += remoteSettings['url'] + '/';
             url += (remoteSettings['buildPattern'])?  remoteSettings['pattern']: '';
             url += camelCasedId;
-                    
+          	*/
+
+          	url += remoteSettings['url'] + '/';
+
+          	if((remoteSettings['buildPattern'])){
+            	url += remoteSettings['pattern']; // "get" by default
+            	url += camelCasedId;	          // "X", camelcased
+           	}
+
             return {
                 url: url,
                 async: remoteSettings['asyncronic'],
                 type: "POST",
-                data:  (remoteSettings['buildPattern'])? previousValues: {'previousValues': previousValues, 'get': id},
+                data:  (remoteSettings['buildPattern'])? previousValues: {
+                	'previousValues': previousValues,
+                	'element': id,
+                	'verb': remoteSettings['pattern']
+            	},
                 dataType: "json"
             };
         }
